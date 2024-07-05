@@ -28,7 +28,9 @@ namespace Bond2{
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>           gd,
                                                                std::shared_ptr<ParticleGroup>        pg,
-                                                               const StorageData&  storage){
+                                                               const StorageData&  storage,
+                                                               const Computables& computables,
+                                                               const cudaStream_t& st){
 
             ComputationalData computational;
 
@@ -126,7 +128,7 @@ namespace Bond2{
 
             const real epsilon = bondParam.epsilon;
             const real sigma   = bondParam.sigma;
-            
+
             const real r2 = dot(rij, rij);
 
             if        (currentParticleIndex == index_i){
@@ -162,11 +164,13 @@ namespace Bond2{
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>           gd,
                                                                std::shared_ptr<ParticleGroup>        pg,
-                                                               const StorageData&  storage){
+                                                               const StorageData&  storage,
+                                                               const Computables& computables,
+                                                               const cudaStream_t& st){
 
             ComputationalData computational;
             static_cast<typename LennardJones_<LennardJonesType>::ComputationalData&>(computational) =
-            LennardJones_<LennardJonesType>::getComputationalData(gd,pg,storage);
+            LennardJones_<LennardJonesType>::getComputationalData(gd,pg,storage,computables,st);
 
             computational.epsilon = storage.epsilon;
 
@@ -263,7 +267,9 @@ namespace Bond2{
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>           gd,
                                                                std::shared_ptr<ParticleGroup>        pg,
-                                                               const StorageData&  storage){
+                                                               const StorageData&  storage,
+                                                               const Computables& computables,
+                                                               const cudaStream_t& st){
 
             ComputationalData computational;
 
@@ -376,10 +382,12 @@ namespace Bond2{
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>           gd,
                                                                std::shared_ptr<ParticleGroup>        pg,
-                                                               const StorageData&  storage){
+                                                               const StorageData&  storage,
+                                                               const Computables& computables,
+                                                               const cudaStream_t& st){
             ComputationalData computational;
             static_cast<LennardJonesGaussian_::ComputationalData&>(computational) =
-            LennardJonesGaussian_::getComputationalData(gd,pg,storage);
+            LennardJonesGaussian_::getComputationalData(gd,pg,storage,computables,st);
 
             computational.epsilon = storage.epsilon;
             computational.D       = storage.D;

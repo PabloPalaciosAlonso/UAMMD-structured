@@ -25,7 +25,9 @@ namespace Bond3{
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>    gd,
                                                                std::shared_ptr<ParticleGroup> pg,
-                                                               const StorageData&  storage){
+                                                               const StorageData&  storage,
+                                                               const Computables& computables,
+                                                               const cudaStream_t& st){
 
             ComputationalData computational;
 
@@ -78,7 +80,7 @@ namespace Bond3{
       static inline __device__ real energySecondDerivate(const real& ang,
 							 const ComputationalData &computational,
 							 const BondParameters &bondParam){
-	
+
 	return -bondParam.K*cos(ang);
       }
     };
@@ -100,9 +102,12 @@ namespace Bond3{
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>    gd,
                                                                std::shared_ptr<ParticleGroup> pg,
-                                                               const StorageData&  storage){
+                                                               const StorageData&  storage,
+                                                               const Computables& computables,
+                                                               const cudaStream_t& st){
             ComputationalData computational;
-            static_cast<KratkyPorod_::ComputationalData&>(computational) = KratkyPorod_::getComputationalData(gd, pg, storage);
+            static_cast<KratkyPorod_::ComputationalData&>(computational) =
+            KratkyPorod_::getComputationalData(gd, pg, storage, computables, st);
 
             computational.K = storage.K;
 
@@ -153,11 +158,11 @@ namespace Bond3{
 
             return KratkyPorod_::energyDerivate(ang,computational,bP);
 	}
-      
+
       static inline __device__ real energySecondDerivate(const real& ang,
 							 const ComputationalData &computational,
 							 const BondParameters &bondParam){
-	
+
 	KratkyPorod_::BondParameters bP;
 	bP.K      = computational.K;
 

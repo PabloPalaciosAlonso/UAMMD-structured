@@ -535,9 +535,10 @@ class Bond3Base_ {
 
         ///////////////////////////
 
-        ComputationalData getComputationalData(){
+        ComputationalData getComputationalData(const Computables& comp,
+                                               const cudaStream_t& st){
             return BondType::getComputationalData(this->gd,
-                                                  this->pg,storage);
+                                                  this->pg,storage,comp,st);
         }
 
         template<typename T>

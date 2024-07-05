@@ -103,7 +103,9 @@ namespace NonBonded{
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>    gd,
                                                                std::shared_ptr<ParticleGroup> pg,
-                                                               const StorageData&  storage){
+                                                               const StorageData&  storage,
+                                                               const Computables& comp,
+                                                               const cudaStream_t& st){
 
             ComputationalData computational;
 
@@ -305,10 +307,10 @@ namespace NonBonded{
             return computational.SASAweight[index_i]*computational.SASAweight[index_j]*f;
         }
 
-      
+
         static inline __device__ tensor3 hessian(const int index_i,const int index_j,
 						 const ComputationalData& computational){
-	  
+
             const real4 posi = computational.pos[index_i];
             const real4 posj = computational.pos[index_j];
 
@@ -341,7 +343,7 @@ namespace NonBonded{
 
             return computational.SASAweight[index_i]*computational.SASAweight[index_j]*H;
         }
-      
+
     };
 
     using KimHummer = NonBondedHessian_<KimHummer_>;

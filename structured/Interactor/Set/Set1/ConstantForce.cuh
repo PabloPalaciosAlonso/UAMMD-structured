@@ -25,8 +25,10 @@ namespace Set1{
         //Computational data getter
 
         static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>           gd,
-                                                                 std::shared_ptr<ExtendedParticleData> pd,
-                                                                 const StorageData&  storage){
+                                                               std::shared_ptr<ExtendedParticleData> pd,
+                                                               const StorageData&  storage,
+                                                               const Computables& comp,
+                                                               const cudaStream_t& st){
 
             ComputationalData computational;
 

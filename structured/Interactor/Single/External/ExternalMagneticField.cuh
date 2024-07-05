@@ -22,16 +22,16 @@ namespace External{
     };
 
     static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>    gd,
-							     std::shared_ptr<ParticleGroup> pg,
-							     const StorageData&  storage){
+							   std::shared_ptr<ParticleGroup> pg,
+                                                           const StorageData&  storage,
+                                                           const Computables& comp,
+                                                           const cudaStream_t& st){
 
       ComputationalData computational;
       std::shared_ptr<ParticleData> pd = pg->getParticleData();
 
-      computational.magnetization = pd->getMagnetization(access::location::gpu,
-							                                           access::mode::read).raw();
-      computational.dir = pd->getDir(access::location::gpu,
-				                             access::mode::read).raw();
+      computational.magnetization = pd->getMagnetization(access::location::gpu,access::mode::read).raw();
+      computational.dir = pd->getDir(access::location::gpu,access::mode::read).raw();
 
       real b0 = storage.b0;
       real3 direction = storage.direction;
@@ -99,10 +99,13 @@ namespace External{
     };
 
     static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>    gd,
-	                                         						     std::shared_ptr<ParticleGroup> pg,
-	                                         						     const StorageData&  storage){
+	                                                   std::shared_ptr<ParticleGroup> pg,
+                                                           const StorageData&  storage,
+                                                           const Computables& comp,
+                                                           const cudaStream_t& st){
 
-      ComputationalData computational = ConstantMagneticField_::getComputationalData(gd, pg, storage);
+      ComputationalData computational =
+      ConstantMagneticField_::getComputationalData(gd, pg, storage, comp, st);
 
       real b0 = storage.b0;
       real w  = storage.frequency*2*M_PI;
