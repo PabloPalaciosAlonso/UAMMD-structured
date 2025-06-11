@@ -47,17 +47,10 @@ namespace Magnetic{
 	for(auto& updatable : this->getUpdatables()){
 	  magnetic->addUpdatable(updatable);
 	}
-
+    
 	firstStep = false;
       }
-
-      //There might be interactions that only cause force on the particles but not magnetic field,
-      //and they will be ignored if we compute the forces with magneticfield = true because they
-      //will not have a ForceTorqueMagneticField transverser.
-      bool computeMagneticField = false;
-      this->updateForce(computeMagneticField);
-      computeMagneticField = true;
-      this->updateForce(computeMagneticField);
+      this->updateForce();
       magnetic->updateMagnetization();
 
       EulerMaruyamaRigidBody::integrationStep(); //Integration step set forces and torques to zero !!!
