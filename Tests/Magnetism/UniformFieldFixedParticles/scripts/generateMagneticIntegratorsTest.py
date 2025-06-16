@@ -57,13 +57,12 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["eulerMaruyamaRigid"] = {}
-simulation["integrator"]["eulerMaruyamaRigid"]["type"] = ["Magnetic", "Fixed"]
+simulation["integrator"]["eulerMaruyamaRigid"]["type"] = ["Magnetic", "LLG_Heun"]
 simulation["integrator"]["eulerMaruyamaRigid"]["parameters"] = {}
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["timeStep"] = timeStep
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["msat"] = msat
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["damping"] = damping
+simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["timeStep"]  = timeStep
+simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["msat"]      = msat
+simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["damping"]   = damping
 simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["gyroRatio"] = gyroRatio
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["magneticIntegrationAlgorithm"] = MIA
 
 simulation["integrator"]["schedule"] = {}
 simulation["integrator"]["schedule"]["type"] = ["Schedule", "Integrator"]

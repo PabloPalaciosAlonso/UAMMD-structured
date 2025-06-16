@@ -39,9 +39,10 @@
             ["BDHIDoublyPeriodic", "DPStokes", "DPStokes.cu"],
             ["FluctuatingHydrodynamics", "CompressibleInertialCoupling", "CompressibleInertialCoupling.cu"],
             ["FluctuatingHydrodynamics", "IncompressibleInertialCoupling", "IncompressibleInertialCoupling.cu"],
-            ["Magnetic", "Brownian", "Brownian.cu"],
-            ["Magnetic", "Fixed", "Fixed.cu"],
-            ["Magnetic", "ForceCouplingMethod", "ForceCouplingMethod.cu"],
+            ["MagneticMotion", "Brownian", "Brownian.cu"],
+            ["MagneticMotion", "ForceCouplingMethod", "ForceCouplingMethod.cu"],
+            ["Magnetic", "LLG_Euler", "LLG_Euler.cu"],
+            ["Magnetic", "LLG_Heun", "LLG_Heun.cu"],
             ["BDHIDoublyPeriodic", "Quasi2D", "Quasi2D.cu"]
         ],
         "NVE": [

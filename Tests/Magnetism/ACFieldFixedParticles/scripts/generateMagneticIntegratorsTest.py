@@ -32,7 +32,6 @@ nStepsOutput  = stepsPerCycle/param["nOutputPerCycle"]
 nStepsMeasure = stepsPerCycle/param["nMeasurePerCycle"]
 
 magneticMoment = 4.*math.pi/3.*msat*radius**3
-MIA = "LLG_Heun"
 
 #Compute box size
 L = param["L"]
@@ -62,13 +61,12 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["magneticFixed"] = {}
-simulation["integrator"]["magneticFixed"]["type"] = ["Magnetic", "Fixed"]
+simulation["integrator"]["magneticFixed"]["type"] = ["Magnetic", "LLG_Euler"]
 simulation["integrator"]["magneticFixed"]["parameters"] = {}
-simulation["integrator"]["magneticFixed"]["parameters"]["timeStep"] = timeStep
-simulation["integrator"]["magneticFixed"]["parameters"]["msat"] = msat
-simulation["integrator"]["magneticFixed"]["parameters"]["damping"] = damping
+simulation["integrator"]["magneticFixed"]["parameters"]["timeStep"]  = timeStep
+simulation["integrator"]["magneticFixed"]["parameters"]["msat"]      = msat
+simulation["integrator"]["magneticFixed"]["parameters"]["damping"]   = damping
 simulation["integrator"]["magneticFixed"]["parameters"]["gyroRatio"] = gyroRatio
-simulation["integrator"]["magneticFixed"]["parameters"]["magneticIntegrationAlgorithm"] = MIA
 
 simulation["integrator"]["schedule"] = {}
 simulation["integrator"]["schedule"]["type"] = ["Schedule", "Integrator"]

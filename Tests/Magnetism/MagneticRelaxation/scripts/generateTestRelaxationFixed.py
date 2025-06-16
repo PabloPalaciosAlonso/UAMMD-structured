@@ -55,14 +55,12 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["fixedParticles"] = {}
-simulation["integrator"]["fixedParticles"]["type"] = ["Magnetic", "Fixed"]
+simulation["integrator"]["fixedParticles"]["type"] = ["Magnetic", "LLG_Heun"]
 simulation["integrator"]["fixedParticles"]["parameters"] = {}
-simulation["integrator"]["fixedParticles"]["parameters"]["timeStep"] = timeStep
-simulation["integrator"]["fixedParticles"]["parameters"]["msat"] = msat
-simulation["integrator"]["fixedParticles"]["parameters"]["damping"] = damping
+simulation["integrator"]["fixedParticles"]["parameters"]["timeStep"]  = timeStep
+simulation["integrator"]["fixedParticles"]["parameters"]["msat"]      = msat
+simulation["integrator"]["fixedParticles"]["parameters"]["damping"]   = damping
 simulation["integrator"]["fixedParticles"]["parameters"]["gyroRatio"] = gyroRatio
-simulation["integrator"]["fixedParticles"]["parameters"]["magneticIntegrationAlgorithm"] = "LLG_Heun"
-
 simulation["integrator"]["schedule"] = {}
 simulation["integrator"]["schedule"]["type"] = ["Schedule", "Integrator"]
 simulation["integrator"]["schedule"]["labels"] = ["order", "integrator","steps"]

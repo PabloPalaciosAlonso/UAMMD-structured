@@ -1,16 +1,16 @@
 {
-    "N":10000,
+    "N":100000,
     "temperature":1.25,
     "L": 10,
     "radius":0.75,    
-    "nCycles":20,
-    "stepsPerCycle":2000,
+    "nCycles":50,
+    "stepsPerCycle":5000,
     "damping":0.1,
     "gyroRatio":5,
     "anisotropy":2.5,
     "msat": 1,
-    "nOutputPerCycle":50,
-    "nMeasurePerCycle":200,
+    "nOutputPerCycle":400,
+    "nMeasurePerCycle":400,
     "frequency":0.1,
     "b0":12
 }

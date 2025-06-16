@@ -57,14 +57,14 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["LLG-Brown"] = {}
-simulation["integrator"]["LLG-Brown"]["type"] = ["Magnetic", "Brownian"]
+simulation["integrator"]["LLG-Brown"]["type"] = ["MagneticMotion", "Brownian"]
 simulation["integrator"]["LLG-Brown"]["parameters"] = {}
-simulation["integrator"]["LLG-Brown"]["parameters"]["timeStep"]  = timeStep
+simulation["integrator"]["LLG-Brown"]["parameters"]["timeStep"]    = timeStep
 simulation["integrator"]["LLG-Brown"]["parameters"]["msat"]      = msat
 simulation["integrator"]["LLG-Brown"]["parameters"]["damping"]   = damping
-simulation["integrator"]["LLG-Brown"]["parameters"]["viscosity"] = viscosity
-simulation["integrator"]["LLG-Brown"]["parameters"]["gyroRatio"] = gyroRatio
-simulation["integrator"]["LLG-Brown"]["parameters"]["magneticIntegrationAlgorithm"] = "LLG_Heun"
+simulation["integrator"]["LLG-Brown"]["parameters"]["viscosity"]   = viscosity
+simulation["integrator"]["LLG-Brown"]["parameters"]["gyroRatio"]  = gyroRatio
+simulation["integrator"]["LLG-Brown"]["parameters"]["magneticIntegrator"] = "LLG_Heun"
 
 simulation["integrator"]["schedule"] = {}
 simulation["integrator"]["schedule"]["type"] = ["Schedule", "Integrator"]

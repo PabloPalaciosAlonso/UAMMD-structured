@@ -24,7 +24,7 @@ timeStep      = 1/(f*stepsPerCycle)
 #Compute the cycles using the FP equation
 field_teor, magnetization_teor = computeCycle(kBT, rc, K, damping, m0, gyroRatio, f, b0,
                                               ncycles = 10, pointsPerCycle = 5000,
-                                              nindex = 30)
+                                              nindex = 50)
 
 #Read results of the simulation
 dataSimulation     = np.loadtxt("./results/output.magnet")
@@ -33,9 +33,10 @@ field_simu         = b0*np.sin(2*np.pi*f*time_simu)
 magnetization_simu = dataSimulation[:,-1]
 
 #Represent the results
-plt.plot(field_teor, magnetization_teor, color = "red", label = "FP")
 plt.plot(field_simu, magnetization_simu, marker = "o",
          color = "k", label = "LLG", linestyle="None")
+plt.plot(field_teor, magnetization_teor, color = "red", label = "FP")
+
 plt.xlabel("B (A. U.)")
 plt.ylabel("$M_z/M_{max}$")
 plt.legend(loc = "upper left")
