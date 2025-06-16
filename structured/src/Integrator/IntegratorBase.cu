@@ -66,37 +66,138 @@ namespace Integrator{
         CudaCheckError();
     }
 
-    void IntegratorBase::updateForce(bool computeMagneticField) {
+    void IntegratorBase::updateForce() {
         for(auto forceComp: interactors) forceComp->sum({.force =true,
                                                          .energy=false,
                                                          .virial=false,
-                                                         .stress=false,
-	                                             .magneticField=computeMagneticField},
+                                                         .stress=false},
 	                                             stream);
         //CudaSafeCall(cudaStreamSynchronize(stream));
         CudaSafeCall(cudaDeviceSynchronize());
         CudaCheckError();
     }
 
-    IntegratorBaseNVT::IntegratorBaseNVT(std::shared_ptr<GlobalData>           gd,
-                                         std::shared_ptr<ParticleGroup>        pg,
-                                         DataEntry& data,
-                                         std::string name):IntegratorBase(gd,pg,data,name){
+  IntegratorBaseNVT::IntegratorBaseNVT(std::shared_ptr<GlobalData>           gd,
+                                       std::shared_ptr<ParticleGroup>        pg,
+                                       DataEntry& data,
+                                       std::string name):IntegratorBase(gd,pg,data,name){
+    
+    System::log<System::DEBUG>("[IntegratorBaseNVT] Created integrator \"%s\"",name.c_str());
+    
+    //Look for the temperature in the input file
+    if(data.isParameterAdded("temperature")){
+      temperature = data.getParameter<real>("temperature");
+      System::log<System::DEBUG>("[IntegratorBaseNVT] (%s) Reading temperature (T=%f) from input file",name.c_str(),temperature);
+    }else{
+      temperature = gd->getEnsemble()->getTemperature();
+    }
+    kBT         = gd->getUnits()->getBoltzmannConstant()*temperature;
+    
+    System::log<System::MESSAGE>("[IntegratorBaseNVT] (%s) Temperature: %f",name.c_str(),temperature);
+    System::log<System::MESSAGE>("[IntegratorBaseNVT] (%s) kBT (kB %f): %f",name.c_str(),gd->getUnits()->getBoltzmannConstant(),kBT);
+    }
+  
+  IntegratorBaseMagnetic::IntegratorBaseMagnetic(std::shared_ptr<GlobalData>           gd,
+                                                 std::shared_ptr<ParticleGroup>        pg,
+                                                 DataEntry& data,
+                                                 std::string name):IntegratorBaseNVT(gd,pg,data,name){}
+  
+  void IntegratorBaseMagnetic::resetMagneticField(){
+    auto field = pd->getMagneticField(access::location::gpu, access::mode::readwrite);
+    thrust::fill(thrust::cuda::par.on(stream), field.begin(), field.end(), make_real4(0));
+    
+    //CudaSafeCall(cudaStreamSynchronize(stream));
+    CudaSafeCall(cudaDeviceSynchronize());
+    CudaCheckError();
+  }
+  
+  void IntegratorBaseMagnetic::updateMagneticField(){
+    for(auto energyComp: interactors) energyComp->sum({.force =false,
+        .energy=false,
+        .virial=false,
+        .stress=false,
+      .magneticField=true},stream);
+    //CudaSafeCall(cudaStreamSynchronize(stream));
+    CudaSafeCall(cudaDeviceSynchronize());
+    CudaCheckError();
+  }
+  
+  void IntegratorBaseMagnetic::forwardTime() {
+    // The function updateMagnetization might internally update the time in fractions of dt.
+    // By storing and restoring the correct time and step afterwards, we ensure consistency
+    // at the end of the step.
+    int currentStep  = this->gd->getFundamental()->getCurrentStep();
+    real currentTime = this->gd->getFundamental()->getSimulationTime();
+    
+    updateMagneticField();
+    updateMagnetization();
+    resetMagneticField();
+    
+    this->gd->getFundamental()->setCurrentStep(currentStep + 1);
+    this->gd->getFundamental()->setSimulationTime(currentTime + this->dt);
+  }
 
-        System::log<System::DEBUG>("[IntegratorBaseNVT] Created integrator \"%s\"",name.c_str());
-
-        //Look for the temperature in the input file
-        if(data.isParameterAdded("temperature")){
-            temperature = data.getParameter<real>("temperature");
-            System::log<System::DEBUG>("[IntegratorBaseNVT] (%s) Reading temperature (T=%f) from input file",name.c_str(),temperature);
-        }else{
-            temperature = gd->getEnsemble()->getTemperature();
-        }
-        kBT         = gd->getUnits()->getBoltzmannConstant()*temperature;
-
-        System::log<System::MESSAGE>("[IntegratorBaseNVT] (%s) Temperature: %f",name.c_str(),temperature);
-        System::log<System::MESSAGE>("[IntegratorBaseNVT] (%s) kBT (kB %f): %f",name.c_str(),gd->getUnits()->getBoltzmannConstant(),kBT);
+  IntegratorBaseMagneticMotion::IntegratorBaseMagneticMotion(std::shared_ptr<GlobalData>           gd,
+                                                             std::shared_ptr<ParticleGroup>        pg,
+                                                             DataEntry& data,
+                                                             std::string name):IntegratorBaseNVT(gd,pg,data,name){
+    
+    std::string magneticIntegratorSubType = data.getParameter<std::string>("magneticIntegrator");
+    bool availableMagneticIntegrator      = isMagneticIntegratorAvailable(magneticIntegratorSubType);
+    if (!availableMagneticIntegrator){
+      System::log<System::CRITICAL>("[IntegratorBaseMagneticMotion] Invalid magnetic integrator \"%s\"", magneticIntegratorSubType.c_str());
     }
 
+    System::log<System::MESSAGE>("[IntegratorBaseMagneticMotion] Created combined magnetic-motion integrator");
+    magneticIntegrator =  std::static_pointer_cast<IntegratorBaseMagnetic>
+      (IntegratorFactory::getInstance().createIntegrator("Magnetic",
+                                                         magneticIntegratorSubType,
+                                                         gd,pg, data,
+                                                         name));
+    loadInteractorsToIntegrator(magneticIntegrator);
+    loadUpdatablesToIntegrator(magneticIntegrator);
+  }
+  
+  void IntegratorBaseMagneticMotion::resetForceTorqueMagneticField(){
+    auto force  = pd->getForce(access::location::gpu, access::mode::readwrite);
+    auto torque = pd->getTorque(access::location::gpu, access::mode::readwrite);
+    auto field  = pd->getMagneticField(access::location::gpu, access::mode::readwrite);
+    thrust::fill(thrust::cuda::par.on(stream), force.begin() , force.end() , make_real4(0));
+    thrust::fill(thrust::cuda::par.on(stream), torque.begin(), torque.end(), make_real4(0));
+    thrust::fill(thrust::cuda::par.on(stream), field.begin() , field.end() , make_real4(0));
+    
+    //CudaSafeCall(cudaStreamSynchronize(stream));
+    CudaSafeCall(cudaDeviceSynchronize());
+    CudaCheckError();
+  }
+  
+  void IntegratorBaseMagneticMotion::updateForceTorqueMagneticField(){
+    for(auto energyComp: interactors) energyComp->sum({.force=true,
+        .energy=false,
+        .virial=false,
+        .stress=false,
+        .magneticField=true},stream);
+    //CudaSafeCall(cudaStreamSynchronize(stream));
+    CudaSafeCall(cudaDeviceSynchronize());
+    CudaCheckError();
+  }
+
+  bool IntegratorBaseMagneticMotion::isMagneticIntegratorAvailable(std::string integratorSubType){
+    std::string integratorType = "Magnetic";
+    return IntegratorFactory::getInstance().isIntegratorRegistered(integratorType,integratorSubType);
+  }
+  
+  void IntegratorBaseMagneticMotion::loadInteractorsToIntegrator(std::shared_ptr<Integrator> integrator){
+    for(auto& interactor : this->getInteractors()){
+      integrator->addInteractor(interactor);
+    }
+  }
+
+  void IntegratorBaseMagneticMotion::loadUpdatablesToIntegrator(std::shared_ptr<Integrator> integrator){
+    for(auto& updatable : this->getUpdatables()){
+      integrator->addUpdatable(updatable);
+    }
+  }
+  
 }}}
 

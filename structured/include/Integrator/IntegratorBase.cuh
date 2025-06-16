@@ -7,6 +7,7 @@
 #include "ParticleData/ParticleGroup.cuh"
 
 #include "Integrator/IntegratorUtils.cuh"
+#include "Integrator/IntegratorFactory.cuh"
 
 #include <memory>
 #include <string>
@@ -40,13 +41,13 @@ namespace Integrator{
             void resetTorque();
 
             void updateEnergy();
-            void updateForce(bool computeMagneticField = false);
+            void updateForce();
 
             virtual void forwardTime() override = 0;
 
     };
 
-    class IntegratorBaseNVT: public IntegratorBase {
+  class IntegratorBaseNVT: public IntegratorBase {
 
         protected:
 
@@ -62,7 +63,46 @@ namespace Integrator{
 
             virtual void forwardTime() override = 0;
 
-    };
+  };
+
+  class IntegratorBaseMagnetic: public IntegratorBaseNVT {
+
+  public:
+    
+    IntegratorBaseMagnetic(std::shared_ptr<GlobalData>           gd,
+                           std::shared_ptr<ParticleGroup>        pg,
+                           DataEntry& data,
+                           std::string name);
+    
+    void resetMagneticField();
+    void updateMagneticField();
+    
+    virtual void forwardTime() override;
+    virtual void updateMagnetization() = 0;
+    
+  };
+
+
+  class IntegratorBaseMagneticMotion: public IntegratorBaseNVT {
+    
+  protected:
+    std::shared_ptr<IntegratorBaseMagnetic> magneticIntegrator;
+    
+  public:
+    
+    IntegratorBaseMagneticMotion(std::shared_ptr<GlobalData>           gd,
+                                 std::shared_ptr<ParticleGroup>        pg,
+                                 DataEntry& data,
+                                 std::string name);
+    
+    bool isMagneticIntegratorAvailable(std::string magneticIntegratorSubType);
+    void loadInteractorsToIntegrator(std::shared_ptr<Integrator> integrator);
+    void loadUpdatablesToIntegrator(std::shared_ptr<Integrator> integrator);
+    void updateForceTorqueMagneticField();
+    void resetForceTorqueMagneticField();
+    
+    virtual void forwardTime() = 0;
+  };
 
 }}}
 
