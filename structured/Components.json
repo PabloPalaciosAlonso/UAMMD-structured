@@ -166,7 +166,8 @@
             ["External", "Plates", "Plates.cu"],
             ["External", "HelixBoundaries","HelixBoundaries.cu"],
             ["External", "ExternalTabulated", "ExternalTabulated.cu"],
-            ["External", "ConstantTorque", "ConstantTorque.cu"]
+            ["External", "ConstantTorque", "ConstantTorque.cu"],
+            ["External", "UniaxialMagneticAnisotropy", "UniaxialMagneticAnisotropy.cu"]
         ],
         "Set": [
             ["Set1", "ConstantTorqueOverCenterOfMass", "Torque.cu"],
