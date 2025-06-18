@@ -70,7 +70,7 @@ namespace External{
 
       const real4 diri = computational.dir[index_i];
       const real4 m_and_M = computational.magnetization[index_i];
-      real3 magneticMoment = m_and_M.w*make_real3(m_and_M);//rotateVector(diri, make_real3(m_and_M));
+      real3 magneticMoment = m_and_M.w*make_real3(m_and_M);
       real3 magneticField = computational.magneticField;
       real e = dot(magneticMoment, magneticField);
       return e;
@@ -88,7 +88,7 @@ namespace External{
       const real4 diri    = computational.dir[index_i];
       const real4 m_and_M = computational.magnetization[index_i];
 
-      real3 magneticMoment = m_and_M.w*make_real3(m_and_M);//rotateVector(diri, make_real3(m_and_M));
+      real3 magneticMoment = m_and_M.w*make_real3(m_and_M);
 
       forceTorque.torque = make_real4(cross(magneticMoment, make_real3(magneticField(index_i, computational))), 0);
 
@@ -159,8 +159,8 @@ namespace External{
 
   };
 
-  using ConstantMagneticField = ExternalForceTorqueMagneticField_<ConstantMagneticField_>;
-  using ACMagneticField       = ExternalForceTorqueMagneticField_<ACMagneticField_>;
+  using ConstantMagneticField = ExternalMagneticField_<ConstantMagneticField_>;
+  using ACMagneticField       = ExternalMagneticField_<ACMagneticField_>;
 
 }}}}
 

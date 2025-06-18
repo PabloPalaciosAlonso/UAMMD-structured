@@ -41,8 +41,9 @@ namespace MagneticMotion{
         firstStep = false;
       }
       updateForceTorqueMagneticField();
-      magneticIntegrator->updateMagnetization();
+      magneticIntegrator->processInteractions();
       brownian->integrationStep(); //Already sets forces and torques to zero
+      magneticIntegrator->updateMagnetization();
       magneticIntegrator->resetMagneticField();
       this->gd->getFundamental()->setCurrentStep(this->gd->getFundamental()->getCurrentStep()+1);
       this->gd->getFundamental()->setSimulationTime(this->gd->getFundamental()->getSimulationTime()+this->dt);
