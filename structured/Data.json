@@ -18,7 +18,6 @@
         ["patchPos", "PatchPos", "real4"],
         ["patchVector", "PatchVector", "real4"],
         ["parentIndex", "ParentIndex", "int"],
-        ["anisotropy", "Anisotropy", "real"],
         ["magneticField", "MagneticField", "real4"],
         ["magnetization", "Magnetization", "real4"],
         ["tentativeState", "TentativeState", "int4"],
