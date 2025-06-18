@@ -673,7 +673,8 @@ namespace Output{
 
             Quat diri = dir[index];
             real4 m_and_M = magnet[index];
-            real3 magneticMoment = m_and_M.w*rotateVector(diri, make_real3(m_and_M));
+            real3 magneticMoment = make_real3(m_and_M);
+            //.w*rotateVector(diri, make_real3(m_and_M));
             out << std::left
                 << std::setw(6)
                 << magneticMoment.x   << " "
