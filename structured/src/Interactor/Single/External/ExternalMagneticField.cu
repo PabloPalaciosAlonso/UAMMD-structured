@@ -70,15 +70,15 @@ namespace External{
 
       const real4 diri = computational.dir[index_i];
       const real4 m_and_M = computational.magnetization[index_i];
-      real3 magneticMoment = m_and_M.w*rotateVector(diri, make_real3(m_and_M));
+      real3 magneticMoment = m_and_M.w*make_real3(m_and_M);//rotateVector(diri, make_real3(m_and_M));
       real3 magneticField = computational.magneticField;
       real e = dot(magneticMoment, magneticField);
       return e;
     }
 
     static inline __device__ real4 magneticField(const int index_i,const ComputationalData& computational){
-	  	return make_real4(computational.magneticField, 0);
-	  }
+      return make_real4(computational.magneticField, 0);
+    }
 
     static inline __device__ ForceTorque forceTorque(const int index_i,const ComputationalData& computational){
       ForceTorque forceTorque;
@@ -88,7 +88,7 @@ namespace External{
       const real4 diri    = computational.dir[index_i];
       const real4 m_and_M = computational.magnetization[index_i];
 
-      real3 magneticMoment = m_and_M.w*rotateVector(diri, make_real3(m_and_M));
+      real3 magneticMoment = m_and_M.w*make_real3(m_and_M);//rotateVector(diri, make_real3(m_and_M));
 
       forceTorque.torque = make_real4(cross(magneticMoment, make_real3(magneticField(index_i, computational))), 0);
 
@@ -99,9 +99,9 @@ namespace External{
 
   //B(t) = b0*sin(w*t+phase); w = 2*pi*f
   struct ACMagneticField_ : public ConstantMagneticField_{
-
+    
     using ConstantMagneticField_::ComputationalData;
-
+    
     struct StorageData: public ConstantMagneticField_::StorageData{
       real frequency;
       real phase;
@@ -114,8 +114,8 @@ namespace External{
                                                            const cudaStream_t& st){
 
       ComputationalData computational =
-      ConstantMagneticField_::getComputationalData(gd, pg, storage, comp, st);
-
+        ConstantMagneticField_::getComputationalData(gd, pg, storage, comp, st);
+      
       real b0 = storage.b0;
       real w  = storage.frequency*2*M_PI;
       real phase = storage.phase;
