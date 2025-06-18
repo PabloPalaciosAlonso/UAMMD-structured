@@ -20,7 +20,7 @@ namespace MagneticMotion{
   private:
     
     std::shared_ptr<NVT::Brownian::EulerMaruyamaRigidBody>  brownian;
-    
+    bool firstStep = true;
   public:
 
     Brownian(std::shared_ptr<GlobalData> gd,
@@ -35,6 +35,11 @@ namespace MagneticMotion{
     }
     
     void forwardTime() override {
+      if (firstStep){
+        loadInteractorsToIntegrator(magneticIntegrator);
+        loadUpdatablesToIntegrator(magneticIntegrator);
+        firstStep = false;
+      }
       updateForceTorqueMagneticField();
       magneticIntegrator->updateMagnetization();
       brownian->integrationStep(); //Already sets forces and torques to zero
