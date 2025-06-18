@@ -53,10 +53,12 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["rigidDipole"] = {}
-simulation["integrator"]["rigidDipole"]["type"] = ["Brownian", "EulerMaruyamaRigidBody"]
+simulation["integrator"]["rigidDipole"]["type"] = ["MagneticMotion", "Brownian"]
 simulation["integrator"]["rigidDipole"]["parameters"]              = {}
 simulation["integrator"]["rigidDipole"]["parameters"]["timeStep"]  = timeStep
 simulation["integrator"]["rigidDipole"]["parameters"]["viscosity"] = viscosity
+simulation["integrator"]["rigidDipole"]["parameters"]["magneticMomentDir"] = [0,0,1]
+simulation["integrator"]["rigidDipole"]["parameters"]["magneticIntegrator"] = "RigidDipole"
 
 simulation["integrator"]["schedule"] = {}
 simulation["integrator"]["schedule"]["type"] = ["Schedule", "Integrator"]

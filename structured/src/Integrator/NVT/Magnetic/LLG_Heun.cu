@@ -21,33 +21,31 @@ namespace Magnetic{
     namespace Heun_ns{
 
       enum class SubStepType {Predictor, Corrector};    
-    
-      __forceinline__ __global__ void integrateLLG(real4* dir, real4* field, real4* magnetization,
+
+      template<SubStepType subStep>
+      __forceinline__ __global__ void integrateLLG(real4* field,
+                                                   real4* magnetization,
                                                    real3* initialMagnetization,
                                                    ParticleGroup::IndexIterator indexIterator,
-                                                   real dt, real kbT, real damping, real msat,
-                                                   real gyroRatio, int currentStep, int seed, int N,
-                                                   SubStepType subStep){
-      
+                                                   real dt, real prefactor, real damping, real msat,
+                                                   real gyroRatio, int currentStep, int seed, int N){
+        
         int id = blockIdx.x*blockDim.x+threadIdx.x;
         if(id>=N) return;
-        int i = indexIterator[id];
+        int i         = indexIterator[id];
         real4 m_and_M = magnetization[i];
-        real3 mi = make_real3(m_and_M);
-        real Mi = m_and_M.w;
+        real3 mi      = make_real3(m_and_M);
+        real Mi       = m_and_M.w;
         if (Mi == real(0.0)) return;
-        Quat diri = dir[i];
-        if (subStep==SubStepType::Predictor){
-          initialMagnetization[i] = mi;
-        }
+        
         real3 bi = make_real3(field[i]);
-        real fluctuationsAmplitude = sqrt(2*kbT*damping/(gyroRatio*Mi*dt));
+        real fluctuationsAmplitude = prefactor*rsqrt(Mi);
         bi += computeThermalField(fluctuationsAmplitude, currentStep, seed, id);
         real3 dmi = computeMagnetizationDerivative(bi,mi,damping, gyroRatio)*dt;
-        if (subStep==SubStepType::Predictor){
+        if constexpr (subStep==SubStepType::Predictor){
+          initialMagnetization[i] = mi;
           mi+=dmi;
-          field[i] = real4();
-        } else if (subStep==SubStepType::Corrector) {
+        } else if constexpr (subStep==SubStepType::Corrector) {
           real3 mi_t0 = initialMagnetization[i];
           mi = real(0.5)*(mi_t0 + mi + dmi);
           mi *= rsqrt(dot(mi,mi));
@@ -66,8 +64,9 @@ namespace Magnetic{
     uint seed;
     
     void updateHalfStep(LLG::Heun_ns::SubStepType subStep){
+      using namespace LLG::Heun_ns;
+      real prefactor      = sqrt(2*kBT*damping/(gyroRatio*dt));
       auto field          = pd->getMagneticField(access::location::gpu, access::mode::read).raw();
-      auto dir            = pd->getDir(access::location::gpu, access::mode::read).raw();
       auto magnetization  = pd->getMagnetization(access::location::gpu, access::mode::readwrite).raw();
       auto groupIterator  = pg->getIndexIterator(access::location::gpu);
       auto initMagnet_ptr = thrust::raw_pointer_cast(magnetizationCopy.data());
@@ -77,12 +76,20 @@ namespace Magnetic{
       int numberParticles = pg->getNumberParticles();
       uint Nthreads       = BLOCKSIZE<numberParticles?BLOCKSIZE:numberParticles;
       uint Nblocks        = numberParticles/Nthreads +  ((numberParticles%Nthreads!=0)?1:0);
-      LLG::Heun_ns::integrateLLG<<<Nblocks, Nthreads, 0, stream>>>(dir, field, magnetization,
-                                                                   initMagnet_ptr, groupIterator,
-                                                                   dt, kBT, damping, msat,
-                                                                   gyroRatio, currentStep, seed,
-                                                                   numberParticles, subStep);
       
+      if (subStep == SubStepType::Predictor) {
+        integrateLLG<SubStepType::Predictor><<<Nblocks, Nthreads, 0, stream>>>(field, magnetization,
+                                                                               initMagnet_ptr, groupIterator,
+                                                                               dt, prefactor, damping, msat,
+                                                                               gyroRatio, currentStep, seed,
+                                                                               numberParticles);
+      } else {
+        integrateLLG<SubStepType::Corrector><<<Nblocks, Nthreads, 0, stream>>>(field, magnetization,
+                                                                               initMagnet_ptr, groupIterator,
+                                                                               dt, prefactor, damping, msat,
+                                                                               gyroRatio, currentStep, seed,
+                                                                               numberParticles);
+      }
     }
     
   public:

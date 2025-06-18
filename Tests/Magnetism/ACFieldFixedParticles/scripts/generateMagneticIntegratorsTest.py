@@ -61,7 +61,7 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["magneticFixed"] = {}
-simulation["integrator"]["magneticFixed"]["type"] = ["Magnetic", "LLG_Euler"]
+simulation["integrator"]["magneticFixed"]["type"] = ["Magnetic", "LLG_Heun"]
 simulation["integrator"]["magneticFixed"]["parameters"] = {}
 simulation["integrator"]["magneticFixed"]["parameters"]["timeStep"]  = timeStep
 simulation["integrator"]["magneticFixed"]["parameters"]["msat"]      = msat
@@ -97,6 +97,10 @@ simulation["topology"]["forceField"]["External"]["parameters"]["b0"] = b0
 simulation["topology"]["forceField"]["External"]["parameters"]["frequency"] = frequency
 simulation["topology"]["forceField"]["External"]["parameters"]["direction"] = [0,0,1]
 
+simulation["topology"]["forceField"]["Anisotropy"] = {}
+simulation["topology"]["forceField"]["Anisotropy"]["type"] = ["External", "UniaxialMagneticAnisotropy"]
+simulation["topology"]["forceField"]["Anisotropy"]["parameters"] = {}
+simulation["topology"]["forceField"]["Anisotropy"]["parameters"]["anisotropy"] = N * [anisotropy]
 #Output
 
 simulation["simulationStep"] = {}
@@ -104,14 +108,13 @@ simulation["simulationStep"]["info"] = {}
 simulation["simulationStep"]["info"]["type"] = ["UtilsStep", "InfoStep"]
 simulation["simulationStep"]["info"]["parameters"] = {}
 simulation["simulationStep"]["info"]["parameters"]["intervalStep"] = nStepsOutput
-
+i
 
 simulation["simulationStep"]["write"] = {}
 simulation["simulationStep"]["write"]["type"] = ["MagneticMeasure", "MeasureMeanMagnetization"]
 simulation["simulationStep"]["write"]["parameters"] = {}
 simulation["simulationStep"]["write"]["parameters"]["intervalStep"] = nStepsOutput
 simulation["simulationStep"]["write"]["parameters"]["outputFilePath"] = "output.magnet"
-#simulation["simulationStep"]["write"]["parameters"]["outputFormat"] = "magnet"
 simulation["simulationStep"]["write"]["parameters"]["startStep"] = firstStepSave
 
 #Check if ./results folder exists, if not create it

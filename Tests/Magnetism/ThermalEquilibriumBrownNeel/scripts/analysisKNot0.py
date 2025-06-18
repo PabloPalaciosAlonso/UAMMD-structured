@@ -59,7 +59,7 @@ cThetaSim = computeCosThetaSim(dataSimulation)
 cPhiSim   = computeCosPhiSim(dataSimulation, posSimu, initStep)
 
 plt.figure()
-plt.hist2d(cThetaSim, cPhiSim, bins=50, cmap='viridis', density = True)
+plt.hist2d(cThetaSim, cPhiSim, bins=100, cmap='viridis', density = True)
 plt.colorbar(label="Densidad")
 
 #Theory

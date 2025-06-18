@@ -508,17 +508,16 @@ namespace Measures{
         int N = pg->getNumberParticles();
 
         real4* m_and_M = pd->getMagnetization(access::location::gpu, access::mode::read).raw();
-	real4* dir = pd->getDir(access::location::gpu, access::mode::read).raw();
-        MeasuresTransforms::magneticMoment_vec tM(dir, m_and_M);
-
+        MeasuresTransforms::magneticMoment_vec tM(m_and_M);
+        
         auto pgIter = pg->getIndexIterator(access::location::gpu);
-
+        
         real3 tMagn = thrust::reduce(thrust::cuda::par(System::getTemporaryDeviceAllocator<char>()).on(st),
-				     thrust::make_transform_iterator(pgIter, tM),
-				     thrust::make_transform_iterator(pgIter+N, tM), real3());
-
+                                     thrust::make_transform_iterator(pgIter, tM),
+                                     thrust::make_transform_iterator(pgIter+N, tM), real3());
+        
         if(st==0){cudaDeviceSynchronize();} else {cudaStreamSynchronize(st);}
-
+        
         return tMagn;
       }
 

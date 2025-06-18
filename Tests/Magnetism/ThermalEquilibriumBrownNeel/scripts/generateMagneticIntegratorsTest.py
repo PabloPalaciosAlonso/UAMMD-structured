@@ -109,7 +109,7 @@ simulation["topology"]["forceField"]["External"]["parameters"]["direction"] = di
 
 simulation["topology"]["forceField"]["External2"] = {}
 simulation["topology"]["forceField"]["External2"]["type"] = ["External", "UniaxialMagneticAnisotropy"]
-simulation["topology"]["forceField"]["External2"]["parameters"]              = {"anisotropyConstants":N*[anisotropy]}
+simulation["topology"]["forceField"]["External2"]["parameters"]              = {"anisotropy":N*[anisotropy]}
 #Output
 
 simulation["simulationStep"] = {}

@@ -57,12 +57,12 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["magneticBrownianRigid"] = {}
-simulation["integrator"]["magneticBrownianRigid"]["type"] = ["Magnetic", "Brownian"]
+simulation["integrator"]["magneticBrownianRigid"]["type"] = ["MagneticMotion", "Brownian"]
 simulation["integrator"]["magneticBrownianRigid"]["parameters"] = {}
-simulation["integrator"]["magneticBrownianRigid"]["parameters"]["timeStep"] = timeStep
-simulation["integrator"]["magneticBrownianRigid"]["parameters"]["msat"] = msat
-simulation["integrator"]["magneticBrownianRigid"]["parameters"]["viscosity"] = viscosity
-simulation["integrator"]["magneticBrownianRigid"]["parameters"]["magneticIntegrationAlgorithm"] = MIA
+simulation["integrator"]["magneticBrownianRigid"]["parameters"]["timeStep"]            = timeStep
+simulation["integrator"]["magneticBrownianRigid"]["parameters"]["viscosity"]           = viscosity
+simulation["integrator"]["magneticBrownianRigid"]["parameters"]["magneticIntegrator"] = "RigidDipole"
+simulation["integrator"]["magneticBrownianRigid"]["parameters"]["magneticMomentDir"]   = [0,0,1]
 
 simulation["integrator"]["schedule"] = {}
 simulation["integrator"]["schedule"]["type"] = ["Schedule", "Integrator"]
@@ -75,7 +75,7 @@ simulation["state"] = {}
 simulation["state"]["labels"] = ["id", "position", "direction", "magnetization"]
 simulation["state"]["data"] = []
 for i in range(N):
-    simulation["state"]["data"].append([i, [0,0,0], [1.0 ,0 ,0, 0 ], [0,1,0,magneticMoment]])
+    simulation["state"]["data"].append([i, [0,0,0], [1.0 ,0 ,0, 0 ], [0,0,1,magneticMoment]])
 
 simulation["topology"] = {}
 simulation["topology"]["structure"] = {}

@@ -10,18 +10,17 @@ import jsbeautifier
 with open("parameters.json", "r") as f:
     param = json.load(f)
 
-N = param["N"]
-
-timeStep = param["timeStep"]
-
+N           = param["N"]
+timeStep    = param["timeStep"]
 temperature = param["temperature"]
-volume = param["volume"]
+volume      = param["volume"]
+anisotropy  = param["anisotropy"]
+gyroRatio   = param["gyroRatio"]
+damping     = param["damping"]
+msat        = param["msat"]
 
-anisotropy = param["anisotropy"]
-gyroRatio = param["gyroRatio"]
-damping = param["damping"]
-msat = param["msat"]
 magneticMoment = volume*msat
+radius         = (3*volume/(math.pi*4))**(1./3)
 
 nSteps        = param["nSteps"]
 firstStepSave = param["firstStepSave"]
@@ -29,6 +28,7 @@ nStepsOutput  = param["nStepsOutput"]
 nStepsMeasure = param["nStepsMeasure"]
 
 MIA = param["magneticAlgorithm"] #Magnetic integration algorithm
+
 #Compute box size
 L = param["L"]
 box = [L,L,L]
@@ -48,7 +48,7 @@ simulation["global"] = {}
 simulation["global"]["types"] = {}
 simulation["global"]["types"]["type"]   = ["Types","Basic"]
 simulation["global"]["types"]["labels"] = ["name", "mass", "radius", "charge"]
-simulation["global"]["types"]["data"]  = [["A", 2, 0.0, 1]]
+simulation["global"]["types"]["data"]  = [["A", 0, radius, 0]]
 
 simulation["global"]["ensemble"] = {}
 simulation["global"]["ensemble"]["type"]   = ["Ensemble","NVT"]
@@ -58,14 +58,12 @@ simulation["global"]["ensemble"]["data"]   = [[box, temperature]]
 
 simulation["integrator"] = {}
 simulation["integrator"]["eulerMaruyamaRigid"] = {}
-simulation["integrator"]["eulerMaruyamaRigid"]["type"] = ["Magnetic", "Fixed"]
+simulation["integrator"]["eulerMaruyamaRigid"]["type"] = ["Magnetic", MIA]
 simulation["integrator"]["eulerMaruyamaRigid"]["parameters"] = {}
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["timeStep"] = timeStep
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["msat"] = msat
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["damping"] = damping
+simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["timeStep"]  = timeStep
+simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["msat"]      = msat
+simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["damping"]   = damping
 simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["gyroRatio"] = gyroRatio
-simulation["integrator"]["eulerMaruyamaRigid"]["parameters"]["magneticIntegrationAlgorithm"] = MIA
-
 simulation["integrator"]["schedule"] = {}
 simulation["integrator"]["schedule"]["type"] = ["Schedule", "Integrator"]
 simulation["integrator"]["schedule"]["labels"] = ["order", "integrator","steps"]
@@ -86,6 +84,12 @@ simulation["topology"]["structure"]["data"] = []
 for i in range(N):
     simulation["topology"]["structure"]["data"].append([i, "A"])
 
+
+
+simulation["topology"]["forceField"] = {}
+simulation["topology"]["forceField"]["External2"] = {}
+simulation["topology"]["forceField"]["External2"]["type"] = ["External", "UniaxialMagneticAnisotropyField"]
+simulation["topology"]["forceField"]["External2"]["parameters"]              = {"radius":radius}
 #Output
 
 simulation["simulationStep"] = {}

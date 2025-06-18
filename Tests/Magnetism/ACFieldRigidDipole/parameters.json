@@ -4,7 +4,7 @@
     "L": 10,
     "radius":2,    
     "nCycles":20,
-    "stepsPerCycle":2000,
+    "stepsPerCycle":5000,
     "viscosity":0.25,
     "msat": 1,
     "nOutputPerCycle":50,

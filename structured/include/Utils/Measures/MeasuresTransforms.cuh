@@ -253,28 +253,26 @@ namespace MeasuresTransforms{
             }
     };
 
-    struct magneticMoment_vec
+  struct magneticMoment_vec
+  {
+    real4* magnetization;
+
+    magneticMoment_vec(real4* magnetization):
+      magnetization(magnetization){}
+    
+    __host__ __device__
+    real3 operator()(int index) const
     {
-        real4* dir;
-        real4* magnetization;
-
-        magneticMoment_vec(real4* dir, real4* magnetization):
-            dir(dir), magnetization(magnetization){}
-
-        __host__ __device__
-            real3 operator()(int index) const
-            {
-                Quat diri = dir[index];
-                real4 m_and_M = magnetization[index];
-                real3 m = make_real3(m_and_M);
-                // m is stored in the particle's frame, but we want it in the lab frame
-                return m_and_M.w*rotateVector(diri, make_real3(m_and_M));
-            }
-    };
-
-    struct magneticMoment_mod
-    {
-        real4* magnetization;
+      real4 m_and_M = magnetization[index];
+      real3 m = make_real3(m_and_M);
+        // m is stored in the particle's frame, but we want it in the lab frame
+      return m_and_M.w*make_real3(m_and_M);
+    }
+  };
+  
+  struct magneticMoment_mod
+  {
+    real4* magnetization;
 
         magneticMoment_mod(real4* magnetization):magnetization(magnetization){}
 

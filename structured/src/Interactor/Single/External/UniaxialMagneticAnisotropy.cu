@@ -52,10 +52,7 @@ namespace External{
 						 DataEntry& data){
       
       StorageData storage;
-      
-      storage.anisotropy           = data.getParameter<std::vector<real>>("anisotropyConstants");
-
-
+      storage.anisotropy               = data.getParameter<std::vector<real>>("anisotropy");
       std::shared_ptr<ParticleData> pd = pg->getParticleData();
       const int N                      = pg->getNumberParticles();
       auto radius                      = pd->getRadius(access::location::gpu,access::mode::read);

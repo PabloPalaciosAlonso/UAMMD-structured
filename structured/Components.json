@@ -42,6 +42,7 @@
             ["MagneticMotion", "Brownian", "Brownian.cu"],
             ["MagneticMotion", "ForceCouplingMethod", "ForceCouplingMethod.cu"],
             ["Magnetic", "LLG_Euler", "LLG_Euler.cu"],
+            ["Magnetic", "RigidDipole", "RigidDipole.cu"],
             ["Magnetic", "LLG_Heun", "LLG_Heun.cu"],
             ["BDHIDoublyPeriodic", "Quasi2D", "Quasi2D.cu"]
         ],

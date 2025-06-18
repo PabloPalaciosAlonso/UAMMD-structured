@@ -1,5 +1,5 @@
 {
-    "N":10000,
+    "N":25000,
     "temperature":1.25,
     "L": 10,
     "volume":1.5,    
@@ -11,10 +11,10 @@
     "anisotropy": 1,
     "gyroRatio":5,
     "damping":0.1,
-    "b0":0.6,
+    "b0":6,
     "msat": 0.75,
     "nSteps":1100000,
-    "firstStepSave":50000,
+    "firstStepSave":100000,
     "nStepsOutput":10000,
     "nStepsMeasure":10000
 

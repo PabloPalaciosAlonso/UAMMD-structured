@@ -404,6 +404,43 @@ class External_ : public ExternalBase_<ExternalType_>{
         }
 };
 
+  template<class ExternalType_>
+class ExternalMagneticField_ : public ExternalBase_<ExternalType_>{
+
+    public:
+
+        using ExternalType = typename ExternalBase_<ExternalType_>::ExternalType;
+
+        ///////////////////////////
+
+        //Transversers
+
+        using EnergyTransverser             = EnergyTransverser_<ExternalType>;
+        using MagneticFieldTransverser      = MagneticFieldTransverser_<ExternalType>;
+
+        ///////////////////////////
+
+        ExternalMagneticField_(std::shared_ptr<GlobalData>    gd,
+                               std::shared_ptr<ParticleGroup> pg,
+                               DataEntry& data):ExternalBase_<ExternalType_>(gd,pg,data){}
+    
+    ///////////////////////////
+    
+    EnergyTransverser getEnergyTransverser(){
+      
+      real*  energy = this->pd->getEnergy(access::location::gpu, access::mode::readwrite).raw();
+      
+      return EnergyTransverser(energy);
+    }
+    
+    MagneticFieldTransverser getMagneticFieldTransverser(){
+      
+      real4*  magneticField = this->pd->getMagneticField(access::location::gpu, access::mode::readwrite).raw();
+      
+      return MagneticFieldTransverser(magneticField);
+    }
+  };
+
 template<class ExternalType_>
 class ExternalForceTorqueMagneticField_ : public ExternalBase_<ExternalType_>{
 

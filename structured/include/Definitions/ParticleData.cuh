@@ -19,7 +19,6 @@
 ((PatchPos)(patchPos)(real4))\
 ((PatchVector)(patchVector)(real4))\
 ((ParentIndex)(parentIndex)(int))\
-((Anisotropy)(anisotropy)(real))\
 ((MagneticField)(magneticField)(real4))\
 ((Magnetization)(magnetization)(real4))\
 ((TentativeState)(tentativeState)(int4))\

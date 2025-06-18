@@ -79,6 +79,7 @@ namespace Integrator{
     
     virtual void forwardTime() override;
     virtual void updateMagnetization() = 0;
+    virtual void processInteractions(){};
     
   };
 

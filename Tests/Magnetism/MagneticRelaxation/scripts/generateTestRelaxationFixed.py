@@ -69,11 +69,11 @@ simulation["integrator"]["schedule"]["data"] = [
 ]
 
 simulation["state"] = {}
-simulation["state"]["labels"] = ["id", "position", "direction", "magnetization", "anisotropy"]
+simulation["state"]["labels"] = ["id", "position", "direction", "magnetization"]
 simulation["state"]["data"] = []
 for i in range(N):
     simulation["state"]["data"].append([i, [0,0,0], [1.0 ,0 ,0, 0 ],
-                                        [0,0,1,magneticMoment], anisotropy])
+                                        [0,0,1,magneticMoment]])
 
 simulation["topology"] = {}
 simulation["topology"]["structure"] = {}
@@ -81,7 +81,12 @@ simulation["topology"]["structure"]["labels"] = ["id", "type"]
 simulation["topology"]["structure"]["data"] = []
 for i in range(N):
     simulation["topology"]["structure"]["data"].append([i, "A"])
-    
+
+simulation["topology"]["forceField"] = {}
+simulation["topology"]["forceField"]["Anistropy"] = {}
+simulation["topology"]["forceField"]["Anistropy"]["type"] = ["External", "UniaxialMagneticAnisotropy"]
+simulation["topology"]["forceField"]["Anistropy"]["parameters"] = {"anisotropy":N*[anisotropy]}
+
 #Output
 
 simulation["simulationStep"] = {}

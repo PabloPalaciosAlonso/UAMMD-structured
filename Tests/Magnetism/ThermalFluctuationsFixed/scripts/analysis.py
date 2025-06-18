@@ -11,7 +11,7 @@ def integrate_probability_ctheta(K, volume, temperature, nPoints):
     integral, _ = quad(probability_ctheta, -1, 1, args=(K, volume, temperature, nPoints))
     return integral
 
-def computeProbabilityDistribution(K, volume, temperature, nPoints = 1000):
+def computeProbabilityDistribution(K, volume, temperature, nPoints = 2000):
     normalization = integrate_probability_ctheta(K, volume, temperature, nPoints)
     ctheta = np.linspace(-1,1,nPoints)
     prob = probability_ctheta(ctheta, K, volume, temperature, nPoints)
