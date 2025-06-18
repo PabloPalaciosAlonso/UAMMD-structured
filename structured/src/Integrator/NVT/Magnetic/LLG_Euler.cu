@@ -40,9 +40,9 @@ namespace Magnetic{
         bi       = rotateVector(Quat(dir[i]).getConjugate(), bi);
         
         real fluctuationsAmplitude = sqrt(2*kbT*damping/(gyroRatio*Mi*dt));
-        real3 anisotropyField      = computeAnisotropyField(mi, anisotropy_i/msat);
+        //real3 anisotropyField      = computeAnisotropyField(mi, anisotropy_i/msat);
         real3 thermalField         = computeThermalField(fluctuationsAmplitude, currentStep, seed, id);
-        bi+=anisotropyField + thermalField;
+        bi+= thermalField;
 
         real3 dmi = computeMagnetizationDerivative(bi, mi, damping, gyroRatio)*dt;
         mi += dmi;

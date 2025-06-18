@@ -23,7 +23,7 @@ namespace Magnetic{
       enum class SubStepType {Predictor, Corrector};    
     
       __forceinline__ __global__ void integrateLLG(real4* dir, real4* field, real4* magnetization,
-                                                   real3* initialMagnetization, real* anisotropy,
+                                                   real3* initialMagnetization,
                                                    ParticleGroup::IndexIterator indexIterator,
                                                    real dt, real kbT, real damping, real msat,
                                                    real gyroRatio, int currentStep, int seed, int N,
@@ -37,17 +37,12 @@ namespace Magnetic{
         real Mi = m_and_M.w;
         if (Mi == real(0.0)) return;
         Quat diri = dir[i];
-        real anisotropy_i = anisotropy[i];
         if (subStep==SubStepType::Predictor){
           initialMagnetization[i] = mi;
         }
         real3 bi = make_real3(field[i]);
-        //Moves from the frame of the laboratory to the frame of the particle.
-        bi = rotateVector(Quat(dir[i]).getConjugate(), bi);
         real fluctuationsAmplitude = sqrt(2*kbT*damping/(gyroRatio*Mi*dt));
         bi += computeThermalField(fluctuationsAmplitude, currentStep, seed, id);
-        real3 anisotropyField = computeAnisotropyField(mi, anisotropy_i/msat);
-        bi+=anisotropyField;
         real3 dmi = computeMagnetizationDerivative(bi,mi,damping, gyroRatio)*dt;
         if (subStep==SubStepType::Predictor){
           mi+=dmi;
@@ -73,7 +68,6 @@ namespace Magnetic{
     void updateHalfStep(LLG::Heun_ns::SubStepType subStep){
       auto field          = pd->getMagneticField(access::location::gpu, access::mode::read).raw();
       auto dir            = pd->getDir(access::location::gpu, access::mode::read).raw();
-      auto anisotropy     = pd->getAnisotropy(access::location::gpu, access::mode::read).raw();
       auto magnetization  = pd->getMagnetization(access::location::gpu, access::mode::readwrite).raw();
       auto groupIterator  = pg->getIndexIterator(access::location::gpu);
       auto initMagnet_ptr = thrust::raw_pointer_cast(magnetizationCopy.data());
@@ -84,10 +78,9 @@ namespace Magnetic{
       uint Nthreads       = BLOCKSIZE<numberParticles?BLOCKSIZE:numberParticles;
       uint Nblocks        = numberParticles/Nthreads +  ((numberParticles%Nthreads!=0)?1:0);
       LLG::Heun_ns::integrateLLG<<<Nblocks, Nthreads, 0, stream>>>(dir, field, magnetization,
-                                                                   initMagnet_ptr, anisotropy,
-                                                                   groupIterator, dt, kBT,
-                                                                   damping, msat, gyroRatio,
-                                                                   currentStep, seed,
+                                                                   initMagnet_ptr, groupIterator,
+                                                                   dt, kBT, damping, msat,
+                                                                   gyroRatio, currentStep, seed,
                                                                    numberParticles, subStep);
       
     }
