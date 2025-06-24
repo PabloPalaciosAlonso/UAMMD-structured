@@ -27,8 +27,9 @@ namespace Magnetic{
                                                    real4* magnetization,
                                                    real3* initialMagnetization,
                                                    ParticleGroup::IndexIterator indexIterator,
-                                                   real dt, real prefactor, real damping, real msat,
-                                                   real gyroRatio, int currentStep, int seed, int N){
+                                                   real dt, real prefactor, real damping,
+                                                   real gyroRatio, int currentStep,
+                                                   int seed, int N){
         
         int id = blockIdx.x*blockDim.x+threadIdx.x;
         if(id>=N) return;
@@ -58,7 +59,6 @@ namespace Magnetic{
   class LLG_Heun: public IntegratorBaseMagnetic{
   private:
     real damping;
-    real msat;
     real gyroRatio;
     thrust::device_vector<real3> magnetizationCopy;
     uint seed;
@@ -80,14 +80,14 @@ namespace Magnetic{
       if (subStep == SubStepType::Predictor) {
         integrateLLG<SubStepType::Predictor><<<Nblocks, Nthreads, 0, stream>>>(field, magnetization,
                                                                                initMagnet_ptr, groupIterator,
-                                                                               dt, prefactor, damping, msat,
-                                                                               gyroRatio, currentStep, seed,
+                                                                               dt, prefactor, damping, gyroRatio,
+                                                                               currentStep, seed,
                                                                                numberParticles);
       } else {
         integrateLLG<SubStepType::Corrector><<<Nblocks, Nthreads, 0, stream>>>(field, magnetization,
                                                                                initMagnet_ptr, groupIterator,
-                                                                               dt, prefactor, damping, msat,
-                                                                               gyroRatio, currentStep, seed,
+                                                                               dt, prefactor, damping, gyroRatio,
+                                                                               currentStep, seed,
                                                                                numberParticles);
       }
     }
@@ -99,11 +99,9 @@ namespace Magnetic{
              std::string name):IntegratorBaseMagnetic(gd, pg, data, name){
       //Read input parameters
       damping   = data.getParameter<real>("damping");
-      msat      = data.getParameter<real>("msat");
       gyroRatio = data.getParameter<real>("gyroRatio");
       seed      = gd->getSystem()->getSeed();
       System::log<System::MESSAGE>("[LLG_Heun] Damping parameter, α: %f", damping);
-      System::log<System::MESSAGE>("[LLG_Heun] Saturation magnetization: %f", msat);
       System::log<System::MESSAGE>("[LLG_Heun] Gyromagnetic ratio, γ: %f", gyroRatio);
       magnetizationCopy.resize(pg->getNumberParticles());
       
