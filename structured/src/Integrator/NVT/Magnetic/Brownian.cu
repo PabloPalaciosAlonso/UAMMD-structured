@@ -23,12 +23,12 @@ namespace Magnetic{
 
       typename MagneticBase::Parameters parameters;
 
-      parameters.stream = this->stream;
-      parameters.dt     = this->dt;
+      parameters.stream     = this->stream;
+      parameters.dt         = this->dt;
       parameters.kBT		= this->kBT;
-      parameters.damping = data.getParameter<real>("damping", -1);
-      parameters.msat = data.getParameter<real>("msat");
-      parameters.gyroRatio = data.getParameter<real>("gyroRatio", -1);
+      parameters.damping    = data.getParameter<real>("damping", -1);
+      parameters.msat       = data.getParameter<real>("msat");
+      parameters.gyroRatio  = data.getParameter<real>("gyroRatio", -1);
       parameters.magneticIntegrationAlgorithm = data.getParameter<std::string>("magneticIntegrationAlgorithm","NotSelected");
 
       magnetic = std::make_unique<MagneticBase>(gd,pg,parameters,name);
@@ -57,7 +57,7 @@ namespace Magnetic{
       bool computeMagneticField = false;
       this->updateForce(computeMagneticField);
       computeMagneticField = true;
-      this->updateForce(computeMagneticField);
+      // this->updateForce(computeMagneticField);
       magnetic->updateMagnetization();
 
       EulerMaruyamaRigidBody::integrationStep(); //Integration step set forces and torques to zero !!!

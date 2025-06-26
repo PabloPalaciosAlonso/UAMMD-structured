@@ -22,7 +22,8 @@ namespace SimulationMeasures{
     std::string   outputFilePath;
     std::ofstream outputFile;
     int startStep;
-
+    int precision;
+    
   public:
 
     MeasureTotalMagnetization(std::shared_ptr<ParticleGroup>  pg,
@@ -33,6 +34,7 @@ namespace SimulationMeasures{
 
       outputFilePath = data.getParameter<std::string>("outputFilePath");
       startStep = data.getParameter<int>("startStep", 0);
+      precision = data.getParameter<int>("precision", 8);
     }
 
     void init(cudaStream_t st) override{
@@ -49,7 +51,8 @@ namespace SimulationMeasures{
       if (step>=startStep){
 	real3 com = Measures::totalMagnetization(pg,st);
 	real time = step * gd->getFundamental()->getTimeStep();
-	outputFile << time << " " << com << std::endl;
+    outputFile << std::setprecision(precision);
+    outputFile << time << " " << com << std::endl;
       }
     }
   };

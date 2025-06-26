@@ -1,7 +1,6 @@
 #pragma once
-
-#define COMPUTABLES \
-((energy)(Energy))\
+  #define COMPUTABLES \
+  ((energy)(Energy))\
 ((force)(Force))\
 ((torque)(Torque))\
 ((virial)(Virial))\
@@ -13,9 +12,10 @@
 ((pairwiseForce)(PairwiseForce))\
 
 
-#define COMPUTABLES_COMBINATIONS \
-((energyForceTorque)(EnergyForceTorque)(energy)(force)(torque))\
+  #define COMPUTABLES_COMBINATIONS \
+  ((energyForceTorque)(EnergyForceTorque)(energy)(force)(torque))\
 ((energyForce)(EnergyForce)(energy)(force))\
 ((forceTorqueMagneticField)(ForceTorqueMagneticField)(force)(torque)(magneticField))\
 ((forceTorque)(ForceTorque)(force)(torque))\
 
+  

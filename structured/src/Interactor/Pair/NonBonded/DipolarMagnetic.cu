@@ -16,36 +16,36 @@ namespace Potentials{
 namespace NonBonded{
 
     namespace DipolarMagnetic_ns{
-        __device__ real3 computeForce(real3 rij, real3 mi, real3 mj, real prefactor,
-                real invr2, real invr5){
-            real mi_dot_rij = dot(rij, mi);
-            real mj_dot_rij = dot(rij, mj);
-            real3 term1 = mi_dot_rij*mj;
-            real3 term2 = mj_dot_rij*mi;
-            real3 term3 = dot(mi,mj)*rij;
-            real3 term4 = real(-5.0)*(mi_dot_rij*mj_dot_rij)*rij*invr2;
-            return -prefactor*(term1+term2+term3+term4)*invr5;
-        }
-        __device__ real3 computeField(real3 rij, real3 mi, real prefactor, real invr3, real invr5){
-            return prefactor*(real(3.0)*dot(rij, mi)*rij*invr5-mi*invr3);
-        }
+      __host__ __device__ real3 computeForce(real3 rij, real3 mi, real3 mj, real prefactor,
+                                           real invr2, real invr5){
+        real mi_dot_rij = dot(rij, mi);
+        real mj_dot_rij = dot(rij, mj);
+        real3 term1 = mi_dot_rij*mj;
+        real3 term2 = mj_dot_rij*mi;
+        real3 term3 = dot(mi,mj)*rij;
+        real3 term4 = real(-5.0)*(mi_dot_rij*mj_dot_rij)*rij*invr2;
+        return -prefactor*(term1+term2+term3+term4)*invr5;
+      }
+      __host__ __device__ real3 computeField(real3 rij, real3 mi, real prefactor, real invr3, real invr5){
+        return prefactor*(real(3.0)*dot(rij, mi)*rij*invr5-mi*invr3);
+      }
     }
-
-    struct DipolarMagnetic_{
-
-        //Computational data
-        struct ComputationalData{
-
-            real4* pos;
-            real4* dir;
-            real4* magnetization;
-
-            Box box;
-
-            real permeability;
-
-            real cutOff;
-        };
+  
+  struct DipolarMagnetic_{
+    
+    //Computational data
+    struct ComputationalData{
+      
+      real4* pos;
+      real4* dir;
+      real4* magnetization;
+      
+      Box box;
+      
+      real permeability;
+      
+      real cutOff;
+    };
 
         //Potential parameters
         struct StorageData{

@@ -26,9 +26,9 @@ namespace Magnetic{
 
       parameters.stream = this->stream;
       parameters.dt     = this->dt;
-      parameters.kBT		= this->kBT;
-      parameters.damping = data.getParameter<real>("damping");
-      parameters.msat = data.getParameter<real>("msat");
+      parameters.kBT	= this->kBT;
+      parameters.damping   = data.getParameter<real>("damping");
+      parameters.msat      = data.getParameter<real>("msat");
       parameters.gyroRatio = data.getParameter<real>("gyroRatio");
       parameters.magneticIntegrationAlgorithm = data.getParameter<std::string>("magneticIntegrationAlgorithm","NotSelected");
 
@@ -39,17 +39,17 @@ namespace Magnetic{
     void forwardTime() override {
 
       if(firstStep){
-	//Load all interactors into magnetic
-	for(auto& interactor : this->getInteractors()){
-	  magnetic->addInteractor(interactor);
-	}
+        //Load all interactors into magnetic
+        for(auto& interactor : this->getInteractors()){
+          magnetic->addInteractor(interactor);
+        }
 
-	//Load all updatables into magnetic
-	for(auto& updatable : this->getUpdatables()){
-	  magnetic->addUpdatable(updatable);
-	}
+        //Load all updatables into magnetic
+        for(auto& updatable : this->getUpdatables()){
+          magnetic->addUpdatable(updatable);
+        }
 
-	firstStep = false;
+        firstStep = false;
       }
 
       magnetic->updateMagneticField();
@@ -60,7 +60,7 @@ namespace Magnetic{
       magnetic->resetMagneticField();
     }
   };
-
+  
 }}}}}
 
 REGISTER_INTEGRATOR(
