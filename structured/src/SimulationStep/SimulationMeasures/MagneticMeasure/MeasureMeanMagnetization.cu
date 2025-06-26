@@ -22,6 +22,7 @@ namespace SimulationMeasures{
     std::string   outputFilePath;
     std::ofstream outputFile;
     int startStep;
+    int precision;
 
   public:
 
@@ -33,6 +34,7 @@ namespace SimulationMeasures{
 
       outputFilePath = data.getParameter<std::string>("outputFilePath");
       startStep = data.getParameter<int>("startStep", 0);
+      precision = data.getParameter<int>("precision", 8);
     }
 
     void init(cudaStream_t st) override{
@@ -41,23 +43,24 @@ namespace SimulationMeasures{
 
       //If the file did not exist, we can write the header here.
       if(!isFileOpen){
-	outputFile << "Time Mx My Mz" << std::endl;
+        outputFile << "Time Mx My Mz" << std::endl;
       }
     }
-
+    
     void applyStep(ullint step, cudaStream_t st) override{
       if (step>=startStep){
-	real3 totalMagnet = Measures::totalMagnetization(pg,st);
-	real  maxMagnet   = Measures::maxMagnetization(pg,st);
-	real time = step * gd->getFundamental()->getTimeStep();
-	outputFile << time << " " << totalMagnet/maxMagnet << std::endl;
+        real3 totalMagnet = Measures::totalMagnetization(pg,st);
+        real  maxMagnet   = Measures::maxMagnetization(pg,st);
+        real time         = step * gd->getFundamental()->getTimeStep();
+        outputFile << std::setprecision(precision);
+        outputFile << time << " " << totalMagnet/maxMagnet << std::endl;
       }
     }
   };
-
+  
 }}}}
 
 REGISTER_SIMULATION_STEP(
-    MagneticMeasure,MeasureMeanMagnetization,
-    uammd::structured::SimulationStep::SimulationMeasures::MeasureMeanMagnetization
-)
+                         MagneticMeasure,MeasureMeanMagnetization,
+                         uammd::structured::SimulationStep::SimulationMeasures::MeasureMeanMagnetization
+                         )

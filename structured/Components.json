@@ -90,7 +90,8 @@
             ["ThermodynamicMeasure", "InteractorsListEnergyMeasure", "InteractorsListEnergyMeasure.cu"],
             ["MechanicalMeasure", "HessianMeasure", "HessianMeasure.cu"],
             ["MechanicalMeasure", "PairwiseForceMeasure", "PairwiseForceMeasure.cu"],
-            ["MechanicalMeasure", "ForceBetweenSetsMeasure", "ForceBetweenSetsMeasure.cu"]
+            ["MechanicalMeasure", "ForceBetweenSetsMeasure", "ForceBetweenSetsMeasure.cu"],
+            ["MagneticMeasure", "MeasureMagneticField", "MeasureMagneticField.cu"]
         ]
     },
     "Interactor": {
@@ -165,7 +166,7 @@
             ["External", "SphericalShell", "SphericalShell.cu"],
             ["Surface", "Absorbed", "Absorbed.cu"],
             ["External", "Plates", "Plates.cu"],
-            ["External", "HelixBoundaries","HelixBoundaries.cu"],
+            ["External", "HelixBoundaries", "HelixBoundaries.cu"],
             ["External", "ExternalTabulated", "ExternalTabulated.cu"],
             ["External", "ConstantTorque", "ConstantTorque.cu"],
             ["External", "UniaxialMagneticAnisotropy", "UniaxialMagneticAnisotropy.cu"]
@@ -211,7 +212,8 @@
             ["NonBonded", "Steric12SoftCore", "LennardJonesSoftCore.cu"],
             ["NonBonded", "LennardJonesSoftCoreType1", "LennardJonesSoftCore.cu"],
             ["NonBonded", "LennardJonesSoftCoreType2", "LennardJonesSoftCore.cu"],
-            ["NonBonded", "SplitLennardJones", "SplitLennardJones.cu"]
+            ["NonBonded", "SplitLennardJones", "SplitLennardJones.cu"],
+            ["LongRange", "DipolarMagnetic", "DipolarMagnetic.cu"]
         ],
         "Patches": [
             ["SurfacePatches", "Linker", "Linker.cu"],

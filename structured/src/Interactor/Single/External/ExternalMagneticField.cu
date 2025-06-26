@@ -31,7 +31,7 @@ namespace External{
     };
 
     static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>    gd,
-							   std::shared_ptr<ParticleGroup> pg,
+                                                           std::shared_ptr<ParticleGroup> pg,
                                                            const StorageData&  storage,
                                                            const Computables& comp,
                                                            const cudaStream_t& st){
@@ -51,14 +51,16 @@ namespace External{
     }
 
     static __host__ StorageData getStorageData(std::shared_ptr<GlobalData>    gd,
-						 std::shared_ptr<ParticleGroup> pg,
-						 DataEntry& data){
+                                               std::shared_ptr<ParticleGroup> pg,
+                                               DataEntry& data){
 
       StorageData storage;
-
+      
       storage.b0        = data.getParameter<real>("b0");
       storage.direction = data.getParameter<real3>("direction");
 
+      storage.direction=normalize(storage.direction);
+      
       System::log<System::MESSAGE>("[ConstantMagneticField] Amplitude, b0 = %f", storage.b0);
       System::log<System::MESSAGE>("[ConstantMagneticField] Direction, direction = (%f, %f, %f)",
                                    storage.direction.x, storage.direction.y, storage.direction.z);
@@ -92,8 +94,8 @@ namespace External{
 
       forceTorque.torque = make_real4(cross(magneticMoment, make_real3(magneticField(index_i, computational))), 0);
 
-	  	return forceTorque;
-	  }
+      return forceTorque;
+    }
 
   };
 
@@ -108,14 +110,18 @@ namespace External{
     };
 
     static __host__ ComputationalData getComputationalData(std::shared_ptr<GlobalData>    gd,
-	                                                   std::shared_ptr<ParticleGroup> pg,
+                                                           std::shared_ptr<ParticleGroup> pg,
                                                            const StorageData&  storage,
                                                            const Computables& comp,
                                                            const cudaStream_t& st){
 
       ComputationalData computational =
         ConstantMagneticField_::getComputationalData(gd, pg, storage, comp, st);
+<<<<<<< HEAD
       
+=======
+
+>>>>>>> magneticSpectralDipolar
       real b0 = storage.b0;
       real w  = storage.frequency*2*M_PI;
       real phase = storage.phase;
@@ -128,8 +134,8 @@ namespace External{
     }
 
     static __host__ StorageData getStorageData(std::shared_ptr<GlobalData>    gd,
-                                  						 std::shared_ptr<ParticleGroup> pg,
-                                  						 DataEntry& data){
+                                               std::shared_ptr<ParticleGroup> pg,
+                                               DataEntry& data){
 
       StorageData storage;
       static_cast<ConstantMagneticField_::StorageData&>(storage) = ConstantMagneticField_::getStorageData(gd, pg, data);
@@ -137,11 +143,12 @@ namespace External{
       storage.frequency = data.getParameter<real>("frequency");
       storage.phase     = data.getParameter<real>("phase", 0);
 
+      
       System::log<System::MESSAGE>("[ACMagneticField] Frequency = %f", storage.frequency);
       System::log<System::MESSAGE>("[ACMagneticField] Phase = %f", storage.phase);
-      System::log<System::MESSAGE>("[ACMagneticField] Phase = %f %f %f",
-			                             storage.direction.x, storage.direction.y, storage.direction.z);
-
+      System::log<System::MESSAGE>("[ACMagneticField] Field direction = %f %f %f",
+                                   storage.direction.x, storage.direction.y, storage.direction.z);
+      
       return storage;
     }
 
@@ -165,11 +172,11 @@ namespace External{
 }}}}
 
 REGISTER_SINGLE_INTERACTOR(
-    External,ConstantMagneticField,
-    uammd::structured::Interactor::SingleInteractor<uammd::structured::Potentials::External::ConstantMagneticField>
-)
+                           External,ConstantMagneticField,
+                           uammd::structured::Interactor::SingleInteractor<uammd::structured::Potentials::External::ConstantMagneticField>
+                           )
 
 REGISTER_SINGLE_INTERACTOR(
-    External,ACMagneticField,
-    uammd::structured::Interactor::SingleInteractor<uammd::structured::Potentials::External::ACMagneticField>
-)
+                           External,ACMagneticField,
+                           uammd::structured::Interactor::SingleInteractor<uammd::structured::Potentials::External::ACMagneticField>
+                           )
