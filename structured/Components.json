@@ -70,6 +70,7 @@
             ["ParticlesListMeasure", "AnglesMeasure", "AnglesMeasure.cu"],
             ["ParticlesListMeasure", "DihedralsMeasure", "DihedralsMeasure.cu"],
             ["MechanicalMeasure", "StressMeasure", "StressMeasure.cu"],
+            ["MechanicalMeasure", "ForceOverParticles", "ForceOverParticles.cu"],
             ["ThermodynamicMeasure", "ThermodynamicQuantityMeasure", "ThermodynamicQuantityMeasure.cu"],
             ["ThermodynamicMeasure", "ThermodynamicIntegration", "ThermodynamicIntegration.cu"],
             ["GeometricalMeasure", "MeanRadius", "MeanRadius.cu"],
