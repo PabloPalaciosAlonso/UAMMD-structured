@@ -70,7 +70,6 @@ namespace External{
 
     static inline __device__ real energy(int index_i, const ComputationalData& computational){
 
-      const real4 diri = computational.dir[index_i];
       const real4 m_and_M = computational.magnetization[index_i];
       real3 magneticMoment = m_and_M.w*make_real3(m_and_M);
       real3 magneticField = computational.magneticField;
@@ -80,21 +79,6 @@ namespace External{
 
     static inline __device__ real4 magneticField(const int index_i,const ComputationalData& computational){
       return make_real4(computational.magneticField, 0);
-    }
-
-    static inline __device__ ForceTorque forceTorque(const int index_i,const ComputationalData& computational){
-      ForceTorque forceTorque;
-
-      forceTorque.force  = make_real4(0.0);
-
-      const real4 diri    = computational.dir[index_i];
-      const real4 m_and_M = computational.magnetization[index_i];
-
-      real3 magneticMoment = m_and_M.w*make_real3(m_and_M);
-
-      forceTorque.torque = make_real4(cross(magneticMoment, make_real3(magneticField(index_i, computational))), 0);
-
-      return forceTorque;
     }
 
   };
@@ -117,11 +101,7 @@ namespace External{
 
       ComputationalData computational =
         ConstantMagneticField_::getComputationalData(gd, pg, storage, comp, st);
-<<<<<<< HEAD
-      
-=======
 
->>>>>>> magneticSpectralDipolar
       real b0 = storage.b0;
       real w  = storage.frequency*2*M_PI;
       real phase = storage.phase;
@@ -159,11 +139,6 @@ namespace External{
     static inline __device__ real4 magneticField(const int index_i,const ComputationalData& computational){
       return ConstantMagneticField_::magneticField(index_i, computational);
     }
-
-    static inline __device__ ForceTorque forceTorque(const int index_i,const ComputationalData& computational){
-      return ConstantMagneticField_::forceTorque(index_i, computational);
-    }
-
   };
 
   using ConstantMagneticField = ExternalMagneticField_<ConstantMagneticField_>;

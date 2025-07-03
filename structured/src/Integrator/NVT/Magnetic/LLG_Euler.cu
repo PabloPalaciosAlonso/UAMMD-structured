@@ -20,7 +20,7 @@ namespace Magnetic{
   namespace LLG{
     namespace Euler_ns{
       
-      __forceinline__ __global__ void integrateLLG(real4* dir, real4*  field, real* anisotropy,
+      __forceinline__ __global__ void integrateLLG(real4* dir, real4*  field,
                                                    real4* magnetization,
                                                    ParticleGroup::IndexIterator indexIterator,
                                                    real dt, real kbT, real damping, real msat, real gyroRatio,
@@ -32,15 +32,12 @@ namespace Magnetic{
         real4 m_and_M     = magnetization[i];
         real3 mi          = make_real3(m_and_M);
         real Mi           = m_and_M.w;
-        real anisotropy_i = anisotropy[i];
         if (Mi == real(0.0)) return;
 
         //Moves from the frame of the laboratory to the frame of the particle.
         real3 bi = make_real3(field[i]);
-        bi       = rotateVector(Quat(dir[i]).getConjugate(), bi);
         
         real fluctuationsAmplitude = sqrt(2*kbT*damping/(gyroRatio*Mi*dt));
-        //real3 anisotropyField      = computeAnisotropyField(mi, anisotropy_i/msat);
         real3 thermalField         = computeThermalField(fluctuationsAmplitude, currentStep, seed, id);
         bi+= thermalField;
 
@@ -76,7 +73,6 @@ namespace Magnetic{
         
       auto field         = pd->getMagneticField(access::location::gpu, access::mode::read).raw();
       auto dir           = pd->getDir(access::location::gpu, access::mode::read).raw();
-      auto anisotropy    = pd->getAnisotropy(access::location::gpu, access::mode::read).raw();
       auto magnetization = pd->getMagnetization(access::location::gpu, access::mode::readwrite).raw();
       auto groupIterator  = pg->getIndexIterator(access::location::gpu);
       uint currentStep    = gd->getFundamental()->getCurrentStep();
@@ -85,7 +81,7 @@ namespace Magnetic{
       int numberParticles = pg->getNumberParticles();
       uint Nthreads       = BLOCKSIZE<numberParticles?BLOCKSIZE:numberParticles;
       uint Nblocks        = numberParticles/Nthreads +  ((numberParticles%Nthreads!=0)?1:0);
-      LLG::Euler_ns::integrateLLG<<<Nblocks, Nthreads, 0, stream>>>(dir, field, anisotropy,
+      LLG::Euler_ns::integrateLLG<<<Nblocks, Nthreads, 0, stream>>>(dir, field,
                                                                    magnetization, groupIterator, dt,
                                                                    kBT, damping, msat, gyroRatio,
                                                                    currentStep, seed, numberParticles);

@@ -1,5 +1,4 @@
-#ifndef FFT_MANAGER_H
-#define FFT_MANAGER_H
+#pragma once
 
 #include "uammd.cuh"
 #include "utils/cufftPrecisionAgnostic.h"
@@ -7,13 +6,17 @@
 #include "utils/cufftDebug.h"
 #include "utils/Grid.cuh"
 #include "utils/container.h"
-#include "complex.cu"
+#include "complex.cuh"
 
 #include "System/ExtendedSystem.cuh"
 
 
 namespace uammd {
 namespace structured{
+namespace Interactor{
+namespace LongRange{
+namespace Dipolar{
+namespace detail{
     
   class FFTManager {
     template<class T>
@@ -209,6 +212,5 @@ namespace structured{
       CufftSafeCall(cufftSetWorkArea(planInverseVector, (void*)d_cufftWorkArea));
     }
   };
-}}
-
-#endif
+  
+}}}}}}
