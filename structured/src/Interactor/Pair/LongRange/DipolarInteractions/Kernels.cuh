@@ -75,7 +75,7 @@ namespace detail{
     __host__ __device__ real phiX(real r, real3 pos = real3()){
       if (r>rmax) return 0.0;
       real val = prefactor*exp(tau*r*r);
-      if constexpr (gradientDirection == Direction::x) val *= real(-2) * r * tau;
+      if constexpr (gradientDirection == Direction::x) val *= real(2) * r * tau;
       return val;
     }
 
@@ -83,7 +83,7 @@ namespace detail{
     __host__ __device__ real phiY(real r, real3 pos = real3()){
       if (r>rmax) return 0.0;
       real val = prefactor*exp(tau*r*r);
-      if constexpr (gradientDirection == Direction::y) val *= real(-2) * r * tau;
+      if constexpr (gradientDirection == Direction::y) val *= real(2) * r * tau;
       return val;
     }
 
@@ -91,7 +91,7 @@ namespace detail{
     __host__ __device__ real phiZ(real r, real3 pos = real3()){
       if (r>rmax) return 0.0;
       real val = prefactor*exp(tau*r*r);
-      if constexpr (gradientDirection == Direction::z) val *= real(-2) * r * tau;
+      if constexpr (gradientDirection == Direction::z) val *= real(2) * r * tau;
       return val;
     }
 
@@ -109,6 +109,9 @@ namespace detail{
   };
 
   struct Gaussian {
+
+    struct Parameters { real sigma, h, rmax; int support; };
+    
     GaussianBase                             kernel;
     GaussianGradient<Direction::x>           grad_x;
     GaussianGradient<Direction::y>           grad_y;
@@ -117,9 +120,12 @@ namespace detail{
     Gaussian(std::shared_ptr<GlobalData> gd, DataEntry& data)
       :Gaussian(InitializeParameters(gd, data)) {}
 
+    Gaussian(const Parameters& p):kernel(p.sigma, p.h, p.rmax, p.support),
+                                  grad_x  (p.sigma, p.h, p.rmax, p.support),
+                                  grad_y  (p.sigma, p.h, p.rmax, p.support),
+                                  grad_z  (p.sigma, p.h, p.rmax, p.support){}
   private:
-    struct Parameters { real sigma, h, rmax; int support; };
-    
+        
     static real computeUpsampling(real tolerance){
       real amin   = 0.55;
       real amax   = 1.65;
@@ -137,35 +143,40 @@ namespace detail{
       Box box        = gd->getEnsemble()->getBox();
       real radius    = data.getParameter<real>("radius", -1.0);
       real sigma     = data.getParameter<real>("sigma",  -1.0);
+      real target_h  = data.getParameter<real>("cellSize",  -1.0);
       real tolerance = data.getParameter<real>("tolerance");
-      
-      if (radius < 0 && sigma < 0)
-        System::log<System::CRITICAL>("[Gaussian Kernel] I need either the radius or the kernel width sigma.");      
+      real Lx        = box.boxSize.x;
+
+      real h;
+      if (radius < 0 && sigma < 0 && target_h<0)
+        System::log<System::CRITICAL>("[Gaussian Kernel] I need either the radius, the kernel width (sigma) or the cellSize (h).");      
       if (radius > 0 && sigma > 0)
         System::log<System::CRITICAL>("[Gaussian Kernel] Radius and kernel width provided. I just need one.");
       
-      if (sigma < 0)
+      if (sigma < 0 and radius > 0)
         sigma = radius / std::cbrt(6 * std::sqrt(M_PI));
+
+      if (sigma > 0 and target_h<0){        
+        real best_h  = adviseGridSize(sigma, tolerance);
+        int  nCells  = std::round(Lx / best_h);
+        int3 nCells3 = nextFFTWiseSize3D(make_int3(nCells));
+        h            = Lx / nCells3.x;
+      }
+
+      if (sigma < 0 and target_h > 0){
+        int  nCells  = std::round(Lx / target_h);
+        int3 nCells3 = nextFFTWiseSize3D(make_int3(nCells));
+        h            = Lx / nCells3.x;
+        sigma        = h * computeUpsampling(tolerance);
+      }
       
-      real Lx      = box.boxSize.x;
-      real best_h  = adviseGridSize(sigma, tolerance);
-      int  nCells  = std::round(Lx / best_h);
-      int3 nCells3 = nextFFTWiseSize3D(make_int3(nCells));
-      
-      real h         = Lx / nCells3.x;
       real sigma2    = sigma * sigma;
-      real targetR   = std::sqrt(-2 * sigma2 *
-                                 std::log(std::sqrt(2 * M_PI * sigma2) * tolerance));
+      real targetR   = std::sqrt(-2 * sigma2 * log(sqrt(2 * M_PI * sigma2) * tolerance));
       int  support   = static_cast<int>(std::ceil(2 * targetR / h));
       real rmax      = 0.5 * h * support;
       
       return {sigma, h, rmax, support};
     }
-
-    Gaussian(const Parameters& p):kernel(p.sigma, p.h, p.rmax, p.support),
-                                  grad_x  (p.sigma, p.h, p.rmax, p.support),
-                                  grad_y  (p.sigma, p.h, p.rmax, p.support),
-                                  grad_z  (p.sigma, p.h, p.rmax, p.support){}
   };
 
   
@@ -233,7 +244,7 @@ namespace detail{
         real dfdr = (-real(3.0) - real(3.0) * omr / root) / real(6.0);
         dphidx = invh * invh * dfdr * sgn;
       }
-      return -dphidx;
+      return dphidx;
     }
     
   public:
@@ -293,6 +304,8 @@ namespace detail{
   };
   
   struct Peskin_3p {
+    struct Parameters {real h;};
+    
     Peskin_3pBase                             kernel;
     Peskin_3pGradient<Direction::x>           grad_x;
     Peskin_3pGradient<Direction::y>           grad_y;
@@ -301,9 +314,12 @@ namespace detail{
     Peskin_3p(std::shared_ptr<GlobalData> gd, DataEntry& data)
       :Peskin_3p(InitializeParameters(gd, data)) {}
 
+    Peskin_3p(const Parameters& p):
+      kernel(p.h), grad_x(p.h), grad_y(p.h), grad_z(p.h){
+    }
+    
   private:
-    struct Parameters {real h;};
-        
+            
     static Parameters InitializeParameters(std::shared_ptr<GlobalData> gd, DataEntry& data) {      
       Box box       = gd->getEnsemble()->getBox();
       real radius   = data.getParameter<real>("radius", -1.0);
@@ -326,10 +342,6 @@ namespace detail{
       int3 nCells3    = nextFFTWiseSize3D(make_int3(nCells));
       real h          = Lx/nCells3.x;
       return {h};
-    }
-
-    Peskin_3p(const Parameters& p):
-      kernel(p.h), grad_x(p.h), grad_y(p.h), grad_z(p.h){
     }
   };
 
@@ -389,12 +401,12 @@ namespace detail{
       if (ar <= 1.0){
         real tmp = std::sqrt(1.0 + 4.0*ar - 4.0*ar*ar);
         real dphi_dar = (-2.0 + (4.0 - 8.0*ar) / (2.0 * tmp)) * invh / (8.0*h);
-        val = -sgn(rr) * dphi_dar;
+        val = sgn(rr) * dphi_dar;
       }
       else if (ar <= 2.0){
         real tmp = std::sqrt(-7.0 + 12.0*ar - 4.0*ar*ar);
         real dphi_dar = (-2.0 - (12.0 - 8.0*ar) / (2.0 * tmp)) * invh / (8.0*h);
-        val = -sgn(rr) * dphi_dar;
+        val = sgn(rr) * dphi_dar;
       }
       return val;
     }
@@ -455,17 +467,22 @@ namespace detail{
   };
 
   struct Peskin_4p {
+    struct Parameters {real h;};
+    
     Peskin_4pBase                             kernel;
     Peskin_4pGradient<Direction::x>           grad_x;
     Peskin_4pGradient<Direction::y>           grad_y;
     Peskin_4pGradient<Direction::z>           grad_z;
+
+    Peskin_4p(const Parameters& p):
+      kernel(p.h), grad_x(p.h), grad_y(p.h), grad_z(p.h){}
+
     
     Peskin_4p(std::shared_ptr<GlobalData> gd, DataEntry& data)
       :Peskin_4p(InitializeParameters(gd, data)) {}
-
+      
   private:
-    struct Parameters {real h;};
-        
+           
     static Parameters InitializeParameters(std::shared_ptr<GlobalData> gd, DataEntry& data) {      
       Box box       = gd->getEnsemble()->getBox();
       real radius   = data.getParameter<real>("radius", -1.0);
@@ -489,10 +506,6 @@ namespace detail{
       real h          = Lx/nCells3.x;
       return {h};
     }
-
-    Peskin_4p(const Parameters& p):
-      kernel(p.h), grad_x(p.h), grad_y(p.h), grad_z(p.h){
-    }
   };
 
   class Peskin_6pBase{
@@ -501,67 +514,53 @@ namespace detail{
     real invh;
     
     static constexpr real K     = 0.7140750929766081;
-    static constexpr real alpha = 28.0;
-    
-    // Métodos auxiliares marcados como const y __host__ __device__
-    __host__ __device__ real computeBeta(real r) const {
-      return 9.0/4.0 - 3.0/2.0 * (K + r*r) + (22.0/3.0 - 7*K)*r - 7.0/3.0 * r*r*r;
-    }
-    
-    __host__ __device__ real computeGamma(real r) const {
-      real term1 = -11.0/32.0 * r*r;
-      real term2 = 3.0/32.0 * (2*K + r*r) * r*r;
-      real term3 = 1.0/72.0 * std::pow((3*K - 1)*r + r*r*r, 2);
-      real term4 = 1.0/18.0 * std::pow((4 - 3*K)*r - r*r*r, 2);
-      return term1 + term2 + term3 + term4;
-    }
-    
-    __host__ __device__ real sign(real x) const {
-      return (x >= 0.0) ? 1.0 : -1.0;
-    }
-    
-    __host__ __device__ real phiRminus3(real r) const {
-      real beta_val  = computeBeta(r);
-      real gamma_val = computeGamma(r);
-      real term      = std::sqrt(beta_val*beta_val - 112.0 * gamma_val);
-      return (-beta_val + term) / (2.0 * alpha);
-    }
-    
-    __host__ __device__ real phiRminus2(real r) const {
-      return -3.0 * phiRminus3(r) - 1.0/16.0 + (K + r*r)/8.0 + (3*K - 1)*r/12.0 + r*r*r/12.0;
-    }
-    
-    __host__ __device__ real phiRminus1(real r) const {
-      return 2.0 * phiRminus3(r) + 1.0/4.0 + (4 - 3*K)*r/6.0 - r*r*r/6.0;
-    }
-    
-    __host__ __device__ real phiR(real r) const {
-      return 2.0 * phiRminus3(r) + 5.0/8.0 - (K + r*r) / 4.0;
-    }
-    
-    __host__ __device__ real phiRplus1(real r) const {
-      return -3.0 * phiRminus3(r) + 1.0/4.0 - (4 - 3*K)*r/6.0 + r*r*r/6.0;
-    }
-    
-    __host__ __device__ real phiRplus2(real r) const {
-      return phiRminus3(r) - 1.0/16.0 + (K + r*r)/8.0 - (3*K - 1)*r/12.0 - r*r*r/12.0;
-    }
-    
+        
   public:
     static constexpr int support = 6;
     
-    // Constructor que inicializa h e invh usando una caja dada
     Peskin_6pBase(real h):h(h), invh(1./h) {}
+
+    __host__ __device__ real beta(real r) const {
+      return real(2.25) - real(1.5) * (K + r*r) + (real(22.0)/real(3.0) - 7*K)*r - real(7.0)/real(3.0) * r*r*r;
+    }
+    
+    __host__ __device__ real gamma(real r) const {
+      real r2        = r*r;
+      real term1     = -real(0.34375) * r2; //-> -11/32*r^2
+      real term2     =  real(0.09375) * (2*K + r2) * r2; //3/32 * (2K +r^2)*r^2
+      real term3sqrt = (3*K - 1)*r + r*r2;
+      real term3     = term3sqrt * term3sqrt / real(72.0);
+      real term4sqrt = (4 - 3*K)*r - r*r2;
+      real term4     = term4sqrt * term4sqrt / real (18.0);
+      return term1 + term2 + term3 + term4;
+    }
+    
+    __host__ __device__ real phiRminus3(real r) const {
+      real beta_val  = beta(r);
+      real gamma_val = gamma(r);
+      real term      = std::sqrt(beta_val*beta_val - 112 * gamma_val);
+      return (-beta_val + term) / real(56.0);
+    }
+
     
     __host__ __device__ real phi(real rr, real3 pos = real3()) const {
-      real r = rr * invh;
-      if      (r >= -3.0 && r < -2.0) return phiRminus3(r + 3.0)*invh;
-      else if (r >= -2.0 && r < -1.0) return phiRminus2(r + 2.0)*invh;
-      else if (r >= -1.0 && r <  0.0) return phiRminus1(r + 1.0)*invh;
-      else if (r >=  0.0 && r <  1.0) return phiR(r)*invh;
-      else if (r >=  1.0 && r <  2.0) return phiRplus1(r - 1.0)*invh;
-      else if (r >=  2.0 && r <  3.0) return phiRplus2(r - 2.0)*invh;
-      else                            return 0.0;
+      real r   = fabs(rr) * invh;
+      int cell = floor(r);
+      switch(cell){
+      case 0:
+        return (2 * phiRminus3(r) + real(0.625) - (K + r*r) * real(0.25))*invh;
+      case 1: { 
+        real s = r-1;
+        return (-3.0 * phiRminus3(s) + real(0.25) + (-(4 - 3*K) + s*s)*s/real(6.0))*invh;
+      }
+      case 2: {
+        real s    = r-2;
+        real s2 = s*s;
+        return (phiRminus3(s) - real(0.0625) + real(0.125)*(K + s2) - ((3*K - 1) + s2)*s/real(12.0))*invh;
+      }
+      default:
+        return real();
+      }
     }
     
     __host__ __device__ real getCellSize() const {
@@ -586,97 +585,61 @@ namespace detail{
     Peskin_6pBase base;
     static constexpr real K     = 0.7140750929766081;
     static constexpr real alpha = 28.0;
-    
-    // Métodos auxiliares para cálculos del kernel
-    __host__ __device__ real beta(real r) const {
-      return 9.0/4.0 - 3.0/2.0 * (K + r*r) + (22.0/3.0 - 7*K)*r - 7.0/3.0 * r*r*r;
-    }
-    
-    __host__ __device__ real gamma(real r) const {
-      real term1 = -11.0/32.0 * r*r;
-      real term2 = 3.0/32.0 * (2*K + r*r) * r*r;
-      real term3 = 1.0/72.0 * std::pow((3*K - 1)*r + r*r*r, 2);
-      real term4 = 1.0/18.0 * std::pow((4 - 3*K)*r - r*r*r, 2);
-      return term1 + term2 + term3 + term4;
-    }
- 
+    static constexpr real div3  = 1.0/3.0;
+
     __host__ __device__ real dbeta(real rr) const {
-      return (22.0/3.0 - 7*K) - 3.0*rr - 7.0*rr*rr;
+      return (real(22.0)*div3 - 7*K) - 3*rr - 7*rr*rr;
     }
     
     __host__ __device__ real dgamma(real r) const {
-      return (1.0/4.0) * (((161.0/36.0) - (59.0/6.0)*K + 5.0*K*K) * r +
-                          (-(109.0/24.0) + 5.0*K) * (4.0/3.0) * std::pow(r, 3) +
-                          (5.0/3.0) * std::pow(r, 5));
+      real r3    = r*r*r;
+      real r5    = r3*r*r;
+      real term1 = ((real(40.25)*div3 - real(29.5)*K)*div3 + 5*K*K) * r;
+      real term2 = (-real(54.5)*div3 + 20*K) * div3 * r3;
+      real term3 = 5*r5*div3;
+      return real(0.25)*(term1 + term2 + term3);
     }
     
     __host__ __device__ real sign(real x) const {
       return (x >= 0.0) ? 1.0 : -1.0;
     }
-    
-    __host__ __device__ real phiRminus3(real r) const {
-      real beta_val  = beta(r);
-      real gamma_val = gamma(r);
-      real term      = std::sqrt(beta_val*beta_val - 112.0 * gamma_val);
-      return (-beta_val + term) / (2.0 * alpha);
-    }
-    
-    __host__ __device__ real phiRminus2(real r) const {
-      return -3.0 * phiRminus3(r) - 1.0/16.0 + (K + r*r)/8.0 + (3*K - 1)*r/12.0 + r*r*r/12.0;
-    }
-    
-    __host__ __device__ real phiRminus1(real r) const {
-      return 2.0 * phiRminus3(r) + 1.0/4.0 + (4 - 3*K)*r/6.0 - r*r*r/6.0;
-    }
-    
-    __host__ __device__ real phiR(real r) const {
-      return 2.0 * phiRminus3(r) + 5.0/8.0 - (K + r*r) / 4.0;
-    }
-    
-    __host__ __device__ real phiRplus1(real r) const {
-      return -3.0 * phiRminus3(r) + 1.0/4.0 - (4 - 3*K)*r/6.0 + r*r*r/6.0;
-    }
-    
-    __host__ __device__ real phiRplus2(real r) const {
-      return phiRminus3(r) - 1.0/16.0 + (K + r*r)/8.0 - (3*K - 1)*r/12.0 - r*r*r/12.0;
-    }
           
     __host__ __device__ real dphi_r_minus_3(real rr) const {
-      real discr = std::pow(beta(rr), 2) - 4.0 * alpha * gamma(rr);
-      real pm3   = (-beta(rr) + std::sqrt(discr)) / (2.0 * alpha);
-      return -(dbeta(rr)*pm3 + dgamma(rr)) / (2.0*alpha*pm3 + beta(rr));
-    }
-  
-    __host__ __device__ real dphi_r_minus_2(real rr) const {
-      return -3.0*dphi_r_minus_3(rr) + (1.0/12.0)*(3*K - 1) + (1.0/4.0)*rr + (1.0/4.0)*rr*rr;
-    }
-  
-    __host__ __device__ real dphi_r_minus_1(real rr) const {
-      return 2.0*dphi_r_minus_3(rr) + (1.0/6.0)*(4 - 3*K) - (1.0/2.0)*rr*rr;
+      real beta  = base.beta(rr);
+      real discr = beta*beta - 112 * base.gamma(rr);
+      real pm3   = (-beta + std::sqrt(discr)) / real(56.0);
+      return -(dbeta(rr)*pm3 + dgamma(rr)) / (56*pm3 + beta);
     }
     
     __host__ __device__ real dphi_r(real rr) const {
-      return 2.0*dphi_r_minus_3(rr) - (1.0/2.0)*rr;
+      return 2*dphi_r_minus_3(rr) - real(0.5)*rr;
     }
     
     __host__ __device__ real dphi_r_plus_1(real rr) const {
-      return -3.0*dphi_r_minus_3(rr) - (1.0/6.0)*(4 - 3*K) + (1.0/2.0)*rr*rr;
+      return -3*dphi_r_minus_3(rr) - (4 - 3*K)/real(6.0) + real(0.5)*rr*rr;
     }
     
     __host__ __device__ real dphi_r_plus_2(real rr) const {
-      return dphi_r_minus_3(rr) - (1.0/12.0)*(3*K - 1) + (1.0/4.0)*rr - (1.0/4.0)*rr*rr;
+      return dphi_r_minus_3(rr) - (3*K - 1)/real(12.0) + real(0.25)*(1-rr)*rr;
     }
     
     
     __host__ __device__ real derivPhiBase(real rr, real3 pos = real3()) const {
-      real r = rr * invh;
-      if      (r >= -3.0 && r < -2.0) return -dphi_r_minus_3(r + 3.0)*invh*invh;
-      else if (r >= -2.0 && r < -1.0) return -dphi_r_minus_2(r + 2.0)*invh*invh;
-      else if (r >= -1.0 && r <  0.0) return -dphi_r_minus_1(r + 1.0)*invh*invh;
-      else if (r >=  0.0 && r <  1.0) return -dphi_r(r)*invh*invh;
-      else if (r >=  1.0 && r <  2.0) return -dphi_r_plus_1(r - 1.0)*invh*invh;
-      else if (r >=  2.0 && r <  3.0) return -dphi_r_plus_2(r - 2.0)*invh*invh;
-      else                            return 0.0;
+      real r   = fabs(rr) * invh;
+      int cell = floor(r);
+      switch (cell) {
+      case 0:
+        return sign(rr) * dphi_r(r) * invh * invh;
+        
+      case 1:
+        return sign(rr) * dphi_r_plus_1(r - 1) * invh * invh;
+        
+      case 2:
+        return sign(rr) * dphi_r_plus_2(r - 2) * invh * invh;
+        
+      default:
+        return real();
+      }
     }
     
     
@@ -725,17 +688,21 @@ namespace detail{
   };
 
   struct Peskin_6p {
+
+    struct Parameters {real h;};
+    
     Peskin_6pBase                             kernel;
     Peskin_6pGradient<Direction::x>           grad_x;
     Peskin_6pGradient<Direction::y>           grad_y;
     Peskin_6pGradient<Direction::z>           grad_z;
-    
+
+    Peskin_6p(const Parameters& p):
+      kernel(p.h), grad_x(p.h), grad_y(p.h), grad_z(p.h){}
+
     Peskin_6p(std::shared_ptr<GlobalData> gd, DataEntry& data)
       :Peskin_6p(InitializeParameters(gd, data)) {}
 
   private:
-    struct Parameters {real h;};
-        
     static Parameters InitializeParameters(std::shared_ptr<GlobalData> gd, DataEntry& data) {      
       Box box       = gd->getEnsemble()->getBox();
       real radius   = data.getParameter<real>("radius", -1.0);
@@ -750,7 +717,9 @@ namespace detail{
       }
       
       if (target_h<0){
-        target_h   = radius * (pow(9*M_PI/128, 1./3.));
+        const real volumeFactor = 28.92252997525405; //Volume of a 6 points peskin kernel. (equivalent to 8 in 3-pt kernel).
+        
+        target_h   = radius * (pow(4*M_PI/(3*volumeFactor), 1./3.));
       }
       
       real Lx         = box.boxSize.x;
@@ -758,10 +727,6 @@ namespace detail{
       int3 nCells3    = nextFFTWiseSize3D(make_int3(nCells));
       real h          = Lx/nCells3.x;
       return {h};
-    }
-
-    Peskin_6p(const Parameters& p):
-      kernel(p.h), grad_x(p.h), grad_y(p.h), grad_z(p.h){
     }
   };
 
