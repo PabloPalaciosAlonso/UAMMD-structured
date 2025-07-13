@@ -164,6 +164,49 @@ namespace detail{
     IBM<Kernel> ibm(kernelGradient, grid);
     ibm.gather(d_pos, d_particleDerivField, d_gridField, numberParticles, st);
   }
+
+  // template<class KernelGroup>
+  // void gridFieldToParticleForce(real4* d_pos,
+  //                               real4* d_particleMagnetization,
+  //                               real3* d_gridField,
+  //                               real3* d_particleForces,
+  //                               KernelGroup kernelGroup,
+  //                               Grid grid, int numberParticles,
+  //                               cudaStream_t &st){
+
+  //   cached_vector<real3> gradBx(numberParticles);
+  //   cached_vector<real3> gradBy(numberParticles);
+  //   cached_vector<real3> gradBz(numberParticles);
+  //   detail::fillWithZero(gradBx);
+  //   detail::fillWithZero(gradBy);
+  //   detail::fillWithZero(gradBz);
+      
+  //   auto d_gradBx = thrust::raw_pointer_cast(gradBx.data());
+  //   auto d_gradBy = thrust::raw_pointer_cast(gradBy.data());
+  //   auto d_gradBz = thrust::raw_pointer_cast(gradBz.data());
+
+  //   auto kernGradx = std::make_shared<decltype(kernelGroup.grad_x)>(kernelGroup.grad_x);
+  //   auto kernGrady = std::make_shared<decltype(kernelGroup.grad_y)>(kernelGroup.grad_y);
+  //   auto kernGradz = std::make_shared<decltype(kernelGroup.grad_z)>(kernelGroup.grad_z);
+    
+  //   gridFieldToParticleGradientField(d_pos, d_gridField, d_gradBx,
+  //                                    kernGradx, grid,
+  //                                    numberParticles, st);
+    
+  //   gridFieldToParticleGradientField(d_pos, d_gridField, d_gradBy,
+  //                                    kernGrady, grid,
+  //                                    numberParticles, st);
+    
+  //   gridFieldToParticleGradientField(d_pos, d_gridField, d_gradBz,
+  //                                    kernGradz, grid,
+  //                                    numberParticles, st);
+    
+  //   thrust::transform(thrust::cuda::par.on(st),
+  //                     thrust::make_counting_iterator<int>(0),
+  //                     thrust::make_counting_iterator<int>(numberParticles),
+  //                     d_particleForces,
+  //                     ForceFromFieldGradient{d_gradBx, d_gradBy, d_gradBz, d_particleMagnetization});   
+  // }
   
   void gridFieldToParticleForce(real4* d_pos,
                                 real4* d_particleMagnetization,
@@ -172,6 +215,8 @@ namespace detail{
                                 KernelVariant kernelGroup,
                                 Grid grid, int numberParticles,
                                 cudaStream_t &st){
+
+
     
     cached_vector<real3> gradBx(numberParticles);
     cached_vector<real3> gradBy(numberParticles);
@@ -198,14 +243,14 @@ namespace detail{
                                        numberParticles, st);
       
       gridFieldToParticleGradientField(d_pos, d_gridField, d_gradBy,
-                                       kernPtr_z, grid,
+                                       kernPtr_y, grid,
                                        numberParticles, st);
       
       gridFieldToParticleGradientField(d_pos, d_gridField, d_gradBz,
                                        kernPtr_z, grid,
                                        numberParticles, st);      
       
-    }, kernelGroup);
+        }, kernelGroup);
     
     thrust::transform(thrust::cuda::par.on(st),
                       thrust::make_counting_iterator<int>(0),
@@ -291,7 +336,7 @@ namespace detail{
     cached_vector<complex3> gridFieldFourier(gridMagnetizationFourier.size());
 
     auto d_gridMagnetFourier = thrust::raw_pointer_cast(gridMagnetizationFourier.data());
-
+    
     {
     auto d_gridFieldFourier  = thrust::raw_pointer_cast(gridFieldFourier.data());
 
