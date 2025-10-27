@@ -790,7 +790,7 @@ namespace Output{
                 << type   << std::endl;
 
             Quat diri = dir[index];
-            real3 m = rotateVector(diri, make_real3(magnet[index]));
+            real3 m = make_real3(magnet[index]);//rotateVector(diri, make_real3(magnet[index]));
             m*=radius;
             m+=p;
 

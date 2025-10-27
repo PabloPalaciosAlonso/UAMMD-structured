@@ -128,7 +128,6 @@ namespace NVT{
 
                                                        real3 f = make_real3(force_ptr[index]);
                                                        real3 v = mt_ptr[index]*f+sigma*noiseTrans;
-
                                                        pos_ptr[index].x+=dt_temp*v.x;
                                                        pos_ptr[index].y+=dt_temp*v.y;
                                                        pos_ptr[index].z+=dt_temp*v.z;
@@ -138,7 +137,7 @@ namespace NVT{
 
                                                        real3 torque = make_real3(torque_ptr[index]);
                                                        real3 domega=mr_ptr[index]*torque+sigma*noiseRot;
-
+                                                       
                                                        dir[index] = EulerMaruyamaRigidBody_ns::rotateSecondOrderExpansion(dir[index],dt_temp*domega);
                                                        dir[index] = normalize(dir[index]);
 

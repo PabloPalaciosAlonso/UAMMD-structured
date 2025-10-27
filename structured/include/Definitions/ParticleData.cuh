@@ -1,6 +1,7 @@
 #pragma once
-  #define PARTICLEDATA_PROPERTIES \
-  ((ResId)(resId)(int))\
+
+#define PARTICLEDATA_PROPERTIES \
+((ResId)(resId)(int))\
 ((ChainId)(chainId)(int))\
 ((ModelId)(modelId)(int))\
 ((BatchId)(batchId)(int))\
@@ -28,4 +29,3 @@
 ((Polarizability)(polarizability)(real))\
 ((PairwiseForce)(pairwiseForce)(real4))\
 
-  

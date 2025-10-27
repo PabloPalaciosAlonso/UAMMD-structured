@@ -24,18 +24,13 @@ namespace MagneticMotion{
 
   private:
     std::shared_ptr<FCM_super> fcm;
-    
+    bool firstStep = true;
   public:
 
     ForceCouplingMethod(std::shared_ptr<GlobalData>           gd,
 			std::shared_ptr<ParticleGroup>        pg,
 			DataEntry& data,
 			std::string name):IntegratorBaseMagneticMotion(gd,pg,data,name){
-
-      System::log<System::CRITICAL>("[Magnetic_FCM] NOT TESTED");
-
-      loadInteractorsToIntegrator(magneticIntegrator);
-      loadUpdatablesToIntegrator(magneticIntegrator);
 
       bool resizeBox           = data.getParameter<bool>("resizeBox", false);
 
@@ -56,12 +51,12 @@ namespace MagneticMotion{
 
 
       bdhiParams.hydrodynamicRadius = bdhiParams.kernel->fixHydrodynamicRadius(bdhiParams.hydrodynamicRadius,
-									       grid.cellSize.x);
+                                                                               grid.cellSize.x);
       bdhiParams.kernelTorque = uammd::BDHI::detail::initializeKernelTorque<KernelTorque>(bdhiParams,
 											  grid);
       if (bdhiParams.adaptBoxSize){
-	gd->getEnsemble()->setBox(grid.box);
-
+        gd->getEnsemble()->setBox(grid.box);
+        
       }
       fcm = std::make_unique<FCM_super>(bdhiParams);
     }
@@ -95,9 +90,17 @@ namespace MagneticMotion{
     }
 
     void forwardTime() override {
+
+      if (firstStep){
+        loadInteractorsToIntegrator(magneticIntegrator);
+        loadUpdatablesToIntegrator(magneticIntegrator);
+        firstStep = false;
+      }
+      
       updateForceTorqueMagneticField();
-      magneticIntegrator->updateMagnetization();
+      magneticIntegrator->processInteractions();
       updatePosition();
+      magneticIntegrator->updateMagnetization();
       resetForceTorqueMagneticField();
       this->gd->getFundamental()->setCurrentStep(this->gd->getFundamental()->getCurrentStep()+1);
       this->gd->getFundamental()->setSimulationTime(this->gd->getFundamental()->getSimulationTime()+this->dt);

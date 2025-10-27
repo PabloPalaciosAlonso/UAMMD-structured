@@ -123,17 +123,17 @@ namespace detail{
 
     void createForwardTransformPlanScalar(){
       CufftSafeCall(cufftCreate(&planForwardScalar));
-      CufftSafeCall(cufftSetAutoAllocation(planForwardScalar, 0));
+      //CufftSafeCall(cufftSetAutoAllocation(planForwardScalar, 0));
 
       size_t cufftWorkSize = 0;
       int3 cdtmp           = {nCells.z, nCells.y, nCells.x};
       
       CufftSafeCall(cufftMakePlan3d(planForwardScalar, cdtmp.x, cdtmp.y, cdtmp.z,
                                     CUFFT_Real2Complex<real>::value, &cufftWorkSize));
-      cached_vector<char> cufftWorkArea;
-      cufftWorkArea.resize(cufftWorkSize);
-      auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
-      CufftSafeCall(cufftSetWorkArea(planForwardScalar, (void*)d_cufftWorkArea));    
+      // cached_vector<char> cufftWorkArea;
+      // cufftWorkArea.resize(cufftWorkSize);
+      // auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
+      // CufftSafeCall(cufftSetWorkArea(planForwardScalar, (void*)d_cufftWorkArea));    
     }
     
     void createForwardTransformPlanVector(){
@@ -145,7 +145,7 @@ namespace detail{
       size_t cufftWorkSize = 0;
       
       CufftSafeCall(cufftCreate(&planForwardVector));
-      CufftSafeCall(cufftSetAutoAllocation(planForwardVector, 0));
+      //CufftSafeCall(cufftSetAutoAllocation(planForwardVector, 0));
       CufftSafeCall(cufftMakePlanMany(planForwardVector,
                                       3, &cdtmp.x, /*Three dimensional FFT*/
                                       &inembed.x,
@@ -158,15 +158,15 @@ namespace detail{
                                       CUFFT_Real2Complex<real>::value, 3,
                                       &cufftWorkSize));
       
-      cached_vector<char> cufftWorkArea;
-      cufftWorkArea.resize(cufftWorkSize);
-      auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
-      CufftSafeCall(cufftSetWorkArea(planForwardVector, (void*)d_cufftWorkArea));    
+      // cached_vector<char> cufftWorkArea;
+      // cufftWorkArea.resize(cufftWorkSize);
+      // auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
+      // CufftSafeCall(cufftSetWorkArea(planForwardVector, (void*)d_cufftWorkArea));    
     }
 
     void createInverseTransformPlanScalar(){
       CufftSafeCall(cufftCreate(&planInverseScalar));
-      CufftSafeCall(cufftSetAutoAllocation(planInverseScalar, 0));
+      //CufftSafeCall(cufftSetAutoAllocation(planInverseScalar, 0));
       
       size_t cufftWorkSize = 0;
       int3 cdtmp           = {nCells.z, nCells.y, nCells.x};
@@ -176,10 +176,10 @@ namespace detail{
                                     CUFFT_Complex2Real<real>::value, &cufftWorkSize));
       
       // Configurar el área de trabajo
-      cached_vector<char> cufftWorkArea;
-      cufftWorkArea.resize(cufftWorkSize);
-      auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
-      CufftSafeCall(cufftSetWorkArea(planInverseScalar, (void*)d_cufftWorkArea));    
+      // cached_vector<char> cufftWorkArea;
+      // cufftWorkArea.resize(cufftWorkSize);
+      // auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
+      // CufftSafeCall(cufftSetWorkArea(planInverseScalar, (void*)d_cufftWorkArea));    
     }
     
     void createInverseTransformPlanVector(){
@@ -192,7 +192,7 @@ namespace detail{
       size_t cufftWorkSize = 0;
       
       CufftSafeCall(cufftCreate(&planInverseVector));
-      CufftSafeCall(cufftSetAutoAllocation(planInverseVector, 0));  // Manual memory allocation for work area
+      //CufftSafeCall(cufftSetAutoAllocation(planInverseVector, 0));  // Manual memory allocation for work area
       
       CufftSafeCall(cufftMakePlanMany(planInverseVector,
                                       3, &cdtmp.x, /*Three-dimensional FFT*/
@@ -206,10 +206,10 @@ namespace detail{
                                       &cufftWorkSize));
       
       // Allocate work area and set it for the inverse plan
-      cached_vector<char> cufftWorkArea;
-      cufftWorkArea.resize(cufftWorkSize);
-      auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
-      CufftSafeCall(cufftSetWorkArea(planInverseVector, (void*)d_cufftWorkArea));
+      // cached_vector<char> cufftWorkArea;
+      // cufftWorkArea.resize(cufftWorkSize);
+      // auto d_cufftWorkArea = thrust::raw_pointer_cast(cufftWorkArea.data());
+      // CufftSafeCall(cufftSetWorkArea(planInverseVector, (void*)d_cufftWorkArea));
     }
   };
   

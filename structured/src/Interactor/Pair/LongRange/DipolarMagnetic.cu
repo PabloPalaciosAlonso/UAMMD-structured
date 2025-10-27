@@ -224,6 +224,7 @@ namespace Dipolar{
                                                               z_div_h, st);
             };
             spuriousSelfForce = TabulatedFunction<real>(2000, 0.0, 1.0, functor);
+            firstCall = false;
           }
             gridFieldToParticleForce(gridField, st);
         }      
